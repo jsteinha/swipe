@@ -223,7 +223,7 @@ public class Alignment {
 
   HashMap<String, Double> extractFeaturesSimple(){
     HashMap<String, Double> ret = new HashMap<String,Double>();
-    for(int i = 0; i < len; i++){
+    for(int i = 0; i < len; i++) {
       Util.update(ret,"init-"+src_tar(""+source[i],c2s(target[i],begin[i])));
       if(i>0){
         Util.update(ret,"init-"+src_tar_prevS(""+source[i],

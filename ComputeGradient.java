@@ -16,7 +16,7 @@ public class ComputeGradient {
     for(int k = 0; k < K2; k++){
       features.add(a.simpleInit());
       int dist = a.editDistance(ex.target);
-      logWeights.add(-1.0 * dist);
+      logWeights.add(-1.0 * dist);  
       score += Math.exp(-dist) / K2;
       edits += dist / (1.0 * K2 * a.len);
       if(a.collapse().equals(ex.target)) correct += 1.0/K2;
