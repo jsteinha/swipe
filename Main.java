@@ -68,6 +68,16 @@ public class Main implements Runnable {
     }
   }
 
+  void adagrad2(Map<String, Double> gradient){
+    for(Map.Entry<String, Double> entry: gradient.entrySet()){
+      String key = entry.getKey();
+      double value = entry.getValue();
+      //Util.update(G1, key, value);
+      Util.update(G2, key, value * value);
+      Util.update(params, key, eta * value / Math.sqrt(1e-4 + G2.get(key)));
+    }
+  }
+
   void sgd(Map<String, Double> gradient){
     for(Map.Entry<String, Double> entry : gradient.entrySet()){
       Util.update(params, entry.getKey(), eta * entry.getValue());
