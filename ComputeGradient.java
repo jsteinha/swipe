@@ -13,9 +13,8 @@ public class ComputeGradient {
     ArrayList<Double> logWeights = new ArrayList<Double>();
     double correct = 0.0, edits = 0.0, score = 0.0;
     Alignment a = new Alignment(ex.source);
-    HashMap<String, double> temp = a.simpleInit()
     for(int k = 0; k < K2; k++){
-      features.add(temp);
+      features.add(a.simpleInit());
       int dist = a.editDistance(ex.target);
       logWeights.add(-1.0 * dist);  
       score += Math.exp(-dist) / K2;

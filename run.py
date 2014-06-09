@@ -19,6 +19,9 @@ parser.add_option("--Q", type="int", dest="Q")
 parser.add_option("--K", type="int", dest="K")
 parser.add_option("--Q2", type="int", dest="Q2")
 parser.add_option("--K2", type="int", dest="K2")
+parser.add_option("--numTrain", type="int", dest="numTrain", default=24000)
+parser.add_option("--numTest", type="int", dest="numTest", default=1000)
+parser.add_option("--testFrequency", type="int", dest="testFrequency", default=6000)
 parser.add_option("--nospaces",action="store_true",dest="nospaces",default=False)
 parser.add_option("--inference", type="string", dest="inference")
 parser.add_option("--learning", type="string", dest="learning")
@@ -99,6 +102,12 @@ if options.run:
     if options.verbosity:
       call_args.append("-Main.verbosity %d" % options.verbosity)
     call_args.append("-Main.numThreads %d" % options.num_threads)
+    if options.numTrain:
+      call_args.append("-Main.numTrain %d" % options.numTrain)
+    if options.numTest:
+      call_args.append("-Main.numTest %d" % options.numTest)
+    if options.testFrequency:
+      call_args.append("-Main.testFrequency %d" % options.testFrequency)
     print 'running command: %s'  % " ".join(call_args)
     run_cmd = lambda : call(shlex.split(" ".join(call_args)))
     #if options.num_threads == 1:
