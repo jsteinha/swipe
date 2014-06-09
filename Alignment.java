@@ -1,12 +1,12 @@
 import java.util.*;
 public class Alignment {
   int len = 0;
-  char[] source;
-  char[] target;
-  boolean[] begin;
+  char[] source; // x
+  char[] target; // z
+  boolean[] begin; // marks which characters are starts of a chunk
   public Alignment(String theSource){
     if(Main.useSpaces){
-      len = 2 * theSource.length() + 1;
+      len = 2 * theSource.length() + 1; // pad with spaces
     } else {
       len = theSource.length();
     }
@@ -14,12 +14,12 @@ public class Alignment {
     target = new char[len];
     begin = new boolean[len];
     for(int i = 0; i < len; i++)
-      source[i] = target[i] = '#';
+      source[i] = target[i] = '#'; // initialize to all '#' (empty character); this initialization only matters if useSpaces == true
     for(int i = 0; i < theSource.length(); i++){
       int index = Main.useSpaces ? 2*i+1 : i;
-      source[index] = theSource.charAt(i);
-      target[index] = target[index] = source[index];
-      begin[index] = true;
+      source[index] = theSource.charAt(i); // fill in values for x[i]
+      target[index] = target[index] = source[index]; // initialize z[i] to x[i]
+      begin[index] = true; // initialize every character to be its own chunk
     }
   }
   public String toString(){
@@ -33,10 +33,10 @@ public class Alignment {
     return ret;
   }
 
-  public String collapse(){
+  public String collapse(){ // creates y from z
     String ret = "";
     for(int i = 0; i < len; i++){
-      if(begin[i]){
+      if(begin[i]){ // only care about characters that are at beginning of chunk
         ret += target[i];
       }
     }
@@ -48,7 +48,8 @@ public class Alignment {
     // current state to the answer.
     // An edit is a modification of a character, and potentially 
     // to whether we're starting a new character
-    // State: current prefix of answer, current prefix of sourse
+    // Use dynamic programming to compute edit distance
+    // DP state: current prefix of answer, current prefix of source
     int len2 = answer.length();
     int[][] dp = new int[len+1][len2+1];
     for(int i = 0; i <= len; i++){
@@ -79,6 +80,11 @@ public class Alignment {
     else return 1 + dp[len][len2];
   }
 
+  // computes the score (\theta * \phi(x,y,z)) of an alignment
+  // currently do this by just computing all the non-zero features 
+  // and looking up the \theta values in a map.
+  // Can probably speed things up a lot by only looking at features 
+  // that actually change.
   double score(HashMap<String, Double> features){
     double ret = 0.0;
     for(Map.Entry<String,Double> entry : features.entrySet()){
@@ -92,7 +98,7 @@ public class Alignment {
 
   public Map<String, Double> propose(int i){
     // propose a change to character i
-    // if next value is I-c, change automatically to B-c if we move away from c
+    // if next value is I-c, change the next value automatically to B-c if we move away from c
     // if prev value is I-c, can be either B-c or I-c
     HashMap<String, Double> logprobs = new HashMap<String, Double>();
     HashMap<String, HashMap<String,Double>> features = 
@@ -100,17 +106,21 @@ public class Alignment {
     HashMap<String, Double> curFeatures;
     boolean old_begin = i+1 < len && begin[i+1];
     String str;
-    for(char c = 'a'; c <= 'z'; c++){
+    for(char c = 'a'; c <= 'z'; c++){ // go through all possible next characters
       // B-c
       if(i+1 < len) begin[i+1] = old_begin;
-      str = c2s(c, true);
+      str = c2s(c, true); // compress the pair (target[i], begin[i]) to a two-character string
+                            // this is probably a stupid thing to do but JAVA doesn't support 
+                            // pairs natively and this was the first workaround I came up with;
+                            // c2s is also useful later for representing features as strings
       if(i+1 < len && target[i+1] != c && target[i+1] != '#') begin[i+1] = true;
       target[i] = c;
       begin[i] = true;
-      curFeatures = extractFeatures();
-      features.put(str, curFeatures);
-      logprobs.put(str, score(curFeatures));
-      if(i > 0 && target[i-1] == c){ // I-c
+      curFeatures = extractFeatures(); // extract features for proposal
+      features.put(str, curFeatures); // add features to list (useful for computing the gradient later, 
+                                         // but can probably save a lot of memory by re-computing them in exchange for 2x worse runtime)
+      logprobs.put(str, score(curFeatures)); // add score to list
+      if(i > 0 && target[i-1] == c){ // prev value is I-c, so we can continue the current chunk if we want
         if(i+1 < len) begin[i+1] = old_begin;
         str = c2s(c, false);
         if(i+1 < len && target[i+1] != c && target[i+1] != '#') begin[i+1] = true;
@@ -139,7 +149,7 @@ public class Alignment {
     Util.update(gradient, features.get(str), 1.0);
     if(i+1 < len) begin[i+1] = old_begin;
     char c; boolean b;
-    if(str.equals("OO")){ c = '#'; b = false; }
+    if(str.equals("OO")){ c = '#'; b = false; } // uncompress the string back to a (target[i],begin[i]) pair
     else if(str.charAt(0) == 'B'){ c = str.charAt(1); b = true; }
     else { c = str.charAt(1); b = false; }
     target[i] = c;
@@ -171,13 +181,13 @@ public class Alignment {
     for(int i = 0; i < len; i++){
       String cur_src = "" + source[i],
              cur_tar = c2s(target[i], begin[i]);
-      Util.update(ret, src_tar(cur_src, cur_tar));
+      Util.update(ret, src_tar(cur_src, cur_tar)); // (source[i],target[i],begin[i])
       String prev;
       if(i > 0){
         prev = c2s(target[i-1], begin[i-1]);
-        Util.update(ret,src_tar_prevT1(cur_src, cur_tar, prev));
+        Util.update(ret,src_tar_prevT1(cur_src, cur_tar, prev)); // (source[i],target[i],begin[i],target[i-1],begin[i-1])
         prev = ""+source[i-1];
-        Util.update(ret,src_tar_prevS(cur_src, cur_tar, prev));
+        Util.update(ret,src_tar_prevS(cur_src, cur_tar, prev)); // (source[i],target[i],begin[i],source[i-1])
       }
       int j = i;
       while(j >= 0 && !begin[j]) j--;
@@ -185,21 +195,22 @@ public class Alignment {
       while(j >= 0 && target[j] == '#') j--;
       if(j >= 0){
         prev = ""+target[j];
-        Util.update(ret,src_tar_prevT2(cur_src, cur_tar, prev));
+        Util.update(ret,src_tar_prevT2(cur_src, cur_tar, prev)); // (source[i],target[i],begin[i],X[i]), where X[i] 
+                                                                    // is the character of the most recent chunk before the current one
       }
     }
     String answer = collapse();
     Double freq = Main.dictionary.get(answer);
-    if(freq != null){
+    if(freq != null){ // add features based on dicitionary frequency
       Util.update(ret,"YD");
       Util.update(ret,"FD",Math.log(freq));
     }
     else {
       Util.update(ret,"ND");
     }
-    for(int i = 0; i < answer.length(); i++){
+    for(int i = 0; i < answer.length(); i++){ // add features based on partial agreement with a dictionary
       for(int j = i+1; j <= answer.length(); j++){
-        freq = Main.dictionary.get(answer.substring(i,j));
+        freq = Main.dictionary.get(answer.substring(i,j)); // this should probably be partialDict, oops
         if(freq != null){
           Util.update(ret,"YP"+(j-i));
           Util.update(ret,"FP"+(j-i),Math.log(freq));
@@ -221,7 +232,7 @@ public class Alignment {
     }
   }
 
-  HashMap<String, Double> extractFeaturesSimple(){
+  HashMap<String, Double> extractFeaturesSimple(){ // here we only extract a subset of the features that allows for a tractable graphical model (see next method)
     HashMap<String, Double> ret = new HashMap<String,Double>();
     for(int i = 0; i < len; i++) {
       Util.update(ret,"init-"+src_tar(""+source[i],c2s(target[i],begin[i])));
@@ -237,7 +248,7 @@ public class Alignment {
     return ret;
   }
 
-  HashMap<String,Double> simpleInit(){ // initializes alignment according to simple model
+  HashMap<String,Double> simpleInit(){ // initializes alignment according to simple model (Markov chain)
     ArrayList<String> alphabet = new ArrayList<String>();
     for(char c = 'a'; c <= 'z'; c++){
       alphabet.add(c2s(c,false));
@@ -294,6 +305,8 @@ public class Alignment {
     }
     return extractFeaturesSimple();
   }
+
+  // helper methods that help to undo c2s
   char targetOf(String x){
     if(x.equals("OO")) return '#';
     else return x.charAt(1);
