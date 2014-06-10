@@ -210,7 +210,7 @@ public class Alignment {
     }
     for(int i = 0; i < answer.length(); i++){ // add features based on partial agreement with a dictionary
       for(int j = i+1; j <= answer.length(); j++){
-        freq = Main.dictionary.get(answer.substring(i,j)); // this should probably be partialDict, oops
+        freq = Main.partialDict.get(answer.substring(i,j)); // this should probably be partialDict, oops
         if(freq != null){
           Util.update(ret,"YP"+(j-i));
           Util.update(ret,"FP"+(j-i),Math.log(freq));

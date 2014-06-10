@@ -7,4 +7,4 @@ do
   awk '/test correct/ { print $5; }' $1/record-$n > $1/test-$n
 done
 python plot2.py $1 $NUM
-evince plot.pdf
+open plot.pdf

@@ -92,6 +92,7 @@ public class Main implements Runnable {
     }
     if(learning.equals("sgd")) sgd(gradient);
     else if(learning.equals("adagrad")) adagrad(gradient);
+    else if(learning.equals("adagrad2")) adagrad2(gradient);
     else throw new RuntimeException("invalid learning algorithm: " + learning);
   }
 
