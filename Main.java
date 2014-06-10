@@ -154,7 +154,10 @@ public class Main implements Runnable {
         LogInfo.logs("Example: %s", ex);
         if(inference.equals("UA")){
           updateParams(ComputeGradient.gradientUA(ex));
-        } else if(inference.equals("AA")){
+        }else if(inference.equals("UAX")) {
+          updateParams(ComputeGradient.gradientUAX(ex));
+        }
+        }else if(inference.equals("AA")){
           updateParams(ComputeGradient.gradientAA(ex));
         } else {
           throw new RuntimeException("invalid inference algorithm: " + inference);
@@ -168,7 +171,7 @@ public class Main implements Runnable {
               @Override
               public void run() {
                 try {
-                  if(inference.equals("UA"))
+                  if(inference.equals("UA") || inference.equals("UAX"))
                     ComputeGradient.gradientUA(ex2, false);
                   else if(inference.equals("AA"))
                     ComputeGradient.gradientAA(ex2, false);
