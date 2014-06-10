@@ -156,7 +156,6 @@ public class Main implements Runnable {
           updateParams(ComputeGradient.gradientUA(ex));
         }else if(inference.equals("UAX")) {
           updateParams(ComputeGradient.gradientUAX(ex));
-        }
         }else if(inference.equals("AA")){
           updateParams(ComputeGradient.gradientAA(ex));
         } else {

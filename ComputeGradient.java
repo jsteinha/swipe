@@ -114,6 +114,9 @@ public class ComputeGradient {
     return answer;
   }
 
+public static Map<String, Double> gradientUAX(Example ex) throws Exception {
+    return gradientUAX(ex, true);
+  }
   public static Map<String, Double> gradientUAX(final Example ex, boolean train) throws Exception {
     final int T = Main.T, B = Main.B, K = train ? Main.K : 1;
     double correct = 0.0;
