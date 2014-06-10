@@ -39,6 +39,11 @@ public class ComputeGradient {
   public static Map<String, Double> gradientUA(Example ex) throws Exception {
     return gradientUA(ex, true);
   }
+
+  public static Map<String, Double> gradientUA2(Example ex) throws Exception {
+    return gradientUA2(ex, true); 
+  }
+  
   public static Map<String, Double> gradientUA(final Example ex, boolean train) throws Exception {
     final int T = Main.T, B = Main.B, K = train ? Main.K : 1;
     double correct = 0.0;
@@ -111,6 +116,23 @@ public class ComputeGradient {
       Util.update(answer, gradients.get(i), cumulativeWeight);
       if(initial.get(i)) cumulativeWeight = 0.0;
     }
+    return answer;
+  }
+
+  public static Map<String, Double> gradientUA2(final Example ex, boolean train) throws Exception 
+  {
+    final int UA2 = Main.UA2;
+    Map<String, Double> cumulativeAnswer = new HashMap<String, Double>();
+    for(int ua2 = 0; ua2 < UA2; ua2++) 
+    {
+      Map<String, Double> thisAsnwer = gradientUA(ex, train);
+      if(train)
+        Util.update(cumulativeAnswer, thisAsnwer);
+      else
+        return null;
+    }
+    Map<String, Double> answer = new HashMap<String, Double>();
+    Util.update(answer, cumulativeAnswer, 1.0/UA2);
     return answer;
   }
 

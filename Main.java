@@ -18,6 +18,8 @@ public class Main implements Runnable {
   public static int Q;
   @Option(gloss="number of random restarts", required=true)
   public static int K;
+  @Option(gloss="number of UA runs to compute the gradient", required=false)
+  public static int UA2;
   @Option(gloss="step size", required=true)
   public static double eta;
   @Option(gloss="inference", required=true)
@@ -154,6 +156,8 @@ public class Main implements Runnable {
         LogInfo.logs("Example: %s", ex);
         if(inference.equals("UA")){
           updateParams(ComputeGradient.gradientUA(ex));
+        } else if(inference.equals("UA2")){
+          updateParams(ComputeGradient.gradientUA2(ex));
         } else if(inference.equals("AA")){
           updateParams(ComputeGradient.gradientAA(ex));
         } else {
@@ -168,7 +172,7 @@ public class Main implements Runnable {
               @Override
               public void run() {
                 try {
-                  if(inference.equals("UA"))
+                  if(inference.equals("UA") || inference.equals("UA2"))
                     ComputeGradient.gradientUA(ex2, false);
                   else if(inference.equals("AA"))
                     ComputeGradient.gradientAA(ex2, false);

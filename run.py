@@ -17,6 +17,7 @@ parser.add_option("--T", type="int", dest="T")
 parser.add_option("--B", type="int", dest="B")
 parser.add_option("--Q", type="int", dest="Q")
 parser.add_option("--K", type="int", dest="K")
+parser.add_option("--UA2", type="int", dest="UA2")
 parser.add_option("--Q2", type="int", dest="Q2")
 parser.add_option("--K2", type="int", dest="K2")
 parser.add_option("--numTrain", type="int", dest="numTrain", default=24000)
@@ -95,6 +96,10 @@ if options.run:
       call_args.append("-Main.numExamples %d" % options.num_examples)
     if not options.inference:
       parser.error("must specify inference algorithm to use")
+    if options.inference == "UA2":
+      if not options.UA2:
+        parser.error("must specify UA2 iterations when using UA2 inference")
+      call_args.append("-Main.UA2 %d" % options.UA2)
     call_args.append("-Main.inference %s" % options.inference)
     if not options.learning:
       parser.error("must specify learning algorithm to use")
