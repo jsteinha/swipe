@@ -122,18 +122,16 @@ public class ComputeGradient {
   public static Map<String, Double> gradientUA2(final Example ex, boolean train) throws Exception 
   {
     final int UA2 = Main.UA2;
-    Map<String, Double> cumulativeAnswer = new HashMap<String, Double>();
+    Map<String, Double> avgAnswer = new HashMap<String, Double>();
     for(int ua2 = 0; ua2 < UA2; ua2++) 
     {
       Map<String, Double> thisAsnwer = gradientUA(ex, train);
       if(train)
-        Util.update(cumulativeAnswer, thisAsnwer);
+        Util.update(avgAnswer, thisAsnwer, 1.0/UA2);
       else
         return null;
     }
-    Map<String, Double> answer = new HashMap<String, Double>();
-    Util.update(answer, cumulativeAnswer, 1.0/UA2);
-    return answer;
+    return avgAnswer;
   }
 
   public static Map<String, Double> gradientAA(Example ex) throws Exception {
