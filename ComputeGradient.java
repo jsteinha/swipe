@@ -131,7 +131,7 @@ public class ComputeGradient {
       else
         return null;
     }
-      return avgAnswer;
+    return avgAnswer;
   }
 
   public static Map<String, Double> gradientAA(Example ex) throws Exception {
