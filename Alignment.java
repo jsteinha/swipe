@@ -1,6 +1,8 @@
 import java.util.*;
+import java.util.concurrent.Callable;
+
 public class Alignment {
-  int len = 0;
+  int len = 0; // source length.
   char[] source; // x
   char[] target; // z
   boolean[] begin; // marks which characters are starts of a chunk
@@ -33,7 +35,7 @@ public class Alignment {
     return ret;
   }
 
-  public String collapse(){ // creates y from z
+  public String collapse(){ // creates y from z by concatenating beginnings of chunks.
     String ret = "";
     for(int i = 0; i < len; i++){
       if(begin[i]){ // only care about characters that are at beginning of chunk
@@ -96,7 +98,67 @@ public class Alignment {
     return ret;
   }
 
-  public Map<String, Double> propose(int i){
+  // feature extraction interface.
+  static class FeatureExtract {
+    public HashMap<String, Double> run() {
+      return null;
+    }  
+  }
+
+  HashMap<String, Double> extractFeatures() {
+    return extractFeatures(false);
+  }
+
+  HashMap<String, Double> extractFeatures(boolean letsDict){
+    HashMap<String, Double> ret = new HashMap<String, Double>();
+    for(int i = 0; i < len; i++){
+      String cur_src = "" + source[i],
+             cur_tar = c2s(target[i], begin[i]);
+      Util.update(ret, src_tar(cur_src, cur_tar)); // (source[i],target[i],begin[i])
+      String prev;
+      if(i > 0){
+        prev = c2s(target[i-1], begin[i-1]);
+        Util.update(ret,src_tar_prevT1(cur_src, cur_tar, prev)); // (source[i],target[i],begin[i],target[i-1],begin[i-1])
+        prev = ""+source[i-1];
+        Util.update(ret,src_tar_prevS(cur_src, cur_tar, prev)); // (source[i],target[i],begin[i],source[i-1])
+      }
+      int j = i;
+      while(j >= 0 && !begin[j]) j--;
+      j--;
+      while(j >= 0 && target[j] == '#') j--;
+      if(j >= 0){
+        prev = ""+target[j];
+        Util.update(ret,src_tar_prevT2(cur_src, cur_tar, prev)); // (source[i],target[i],begin[i],X[i]), where X[i] 
+                                                                    // is the character of the most recent chunk before the current one
+      }
+    }
+    if(letsDict) {
+      String answer = collapse();
+      Double freq = Main.dictionary.get(answer);
+      if(freq != null){ // add features based on dicitionary frequency
+        Util.update(ret,"YD");
+        Util.update(ret,"FD",Math.log(freq));
+      } else {
+        Util.update(ret,"ND");
+      }
+      for(int i = 0; i < answer.length(); i++){ // add features based on partial agreement with a dictionary
+        for(int j = i+1; j <= answer.length(); j++){
+          freq = Main.partialDict.get(answer.substring(i,j)); // this should probably be partialDict, oops
+          if(freq != null){
+            Util.update(ret,"YP"+(j-i));
+            Util.update(ret,"FP"+(j-i),Math.log(freq));
+          }
+          else {
+            Util.update(ret,"NP"+(j-i));
+          }
+        }
+      }
+    }
+    return ret;
+  }
+
+
+  public Map<String, Double> propose(int i, FeatureExtract fe){
     // propose a change to character i
     // if next value is I-c, change the next value automatically to B-c if we move away from c
     // if prev value is I-c, can be either B-c or I-c
@@ -116,7 +178,8 @@ public class Alignment {
       if(i+1 < len && target[i+1] != c && target[i+1] != '#') begin[i+1] = true;
       target[i] = c;
       begin[i] = true;
-      curFeatures = extractFeatures(); // extract features for proposal
+      // curFeatures = extractFeatures(); // extract features for proposal
+      curFeatures = fe.run();
       features.put(str, curFeatures); // add features to list (useful for computing the gradient later, 
                                          // but can probably save a lot of memory by re-computing them in exchange for 2x worse runtime)
       logprobs.put(str, score(curFeatures)); // add score to list
@@ -176,52 +239,6 @@ public class Alignment {
     return "cr_sr,cr_tr,pr_sr:"+cur_src+":"+cur_tar+":"+prev_src;
   }
 
-  HashMap<String, Double> extractFeatures(){
-    HashMap<String, Double> ret = new HashMap<String, Double>();
-    for(int i = 0; i < len; i++){
-      String cur_src = "" + source[i],
-             cur_tar = c2s(target[i], begin[i]);
-      Util.update(ret, src_tar(cur_src, cur_tar)); // (source[i],target[i],begin[i])
-      String prev;
-      if(i > 0){
-        prev = c2s(target[i-1], begin[i-1]);
-        Util.update(ret,src_tar_prevT1(cur_src, cur_tar, prev)); // (source[i],target[i],begin[i],target[i-1],begin[i-1])
-        prev = ""+source[i-1];
-        Util.update(ret,src_tar_prevS(cur_src, cur_tar, prev)); // (source[i],target[i],begin[i],source[i-1])
-      }
-      int j = i;
-      while(j >= 0 && !begin[j]) j--;
-      j--;
-      while(j >= 0 && target[j] == '#') j--;
-      if(j >= 0){
-        prev = ""+target[j];
-        Util.update(ret,src_tar_prevT2(cur_src, cur_tar, prev)); // (source[i],target[i],begin[i],X[i]), where X[i] 
-                                                                    // is the character of the most recent chunk before the current one
-      }
-    }
-    String answer = collapse();
-    Double freq = Main.dictionary.get(answer);
-    if(freq != null){ // add features based on dicitionary frequency
-      Util.update(ret,"YD");
-      Util.update(ret,"FD",Math.log(freq));
-    }
-    else {
-      Util.update(ret,"ND");
-    }
-    for(int i = 0; i < answer.length(); i++){ // add features based on partial agreement with a dictionary
-      for(int j = i+1; j <= answer.length(); j++){
-        freq = Main.partialDict.get(answer.substring(i,j)); // this should probably be partialDict, oops
-        if(freq != null){
-          Util.update(ret,"YP"+(j-i));
-          Util.update(ret,"FP"+(j-i),Math.log(freq));
-        }
-        else {
-          Util.update(ret,"NP"+(j-i));
-        }
-      }
-    }
-    return ret;
-  }
 
   static void copyFeatures(){
     ArrayList<String> keys = new ArrayList<String>(Main.params.keySet());
@@ -257,7 +274,7 @@ public class Alignment {
     alphabet.add(c2s('#',false));
     int S = alphabet.size();
     double[][] nodes = new double[len][S];
-    for(int i = 0; i < len; i++){
+    for(int i = 0; i < len; i++){   
       for(int j = 0; j < S; j++){
         nodes[i][j] += Util.getSafe(Main.params, 
                         "init-"+src_tar(""+source[i],alphabet.get(j)));
@@ -288,7 +305,8 @@ public class Alignment {
         marginals[i][j] = Double.NEGATIVE_INFINITY;
         for(int k=0;k<S;k++){
           marginals[i][j] = Util.lse(marginals[i][j],
-                                     marginals[i-1][k] + edges[i][j][k]);
+                                     marginals[i-1][k] + edges[i][j][k]);   // dynamic programming in log-space.
+
         }
       }
     }

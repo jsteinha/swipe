@@ -14,6 +14,7 @@ parser.add_option("-v", "--verbose", action="store_true", dest="verbose", defaul
 parser.add_option("-g", type="int", dest="memory", default=12)
 parser.add_option("--eta", type="float", dest="eta", default=0.05)
 parser.add_option("--T", type="int", dest="T")
+parser.add_option("--T2", type="int", dest="T2")
 parser.add_option("--B", type="int", dest="B")
 parser.add_option("--Q", type="int", dest="Q")
 parser.add_option("--K", type="int", dest="K")
@@ -108,6 +109,8 @@ if options.run:
       call_args.append("-Main.numTest %d" % options.numTest)
     if options.testFrequency:
       call_args.append("-Main.testFrequency %d" % options.testFrequency)
+    if options.T2:
+      call_args.append("-Main.T2 %d" % options.T2)
     print 'running command: %s'  % " ".join(call_args)
     run_cmd = lambda : call(shlex.split(" ".join(call_args)))
     #if options.num_threads == 1:

@@ -12,6 +12,8 @@ public class Main implements Runnable {
   public static String experimentName = "UNKNOWN";
   @Option(gloss="MCMC steps", required=true)
   public static int T;
+  @Option(gloss="seond-stage MCMC steps", required=false)
+  public static int T2 = 50;
   @Option(gloss="MCMC burn-in", required=true)
   public static int B;
   @Option(gloss="number of passes", required=true)
@@ -154,8 +156,8 @@ public class Main implements Runnable {
         LogInfo.logs("Example: %s", ex);
         if(inference.equals("UA")){
           updateParams(ComputeGradient.gradientUA(ex));
-        }else if(inference.equals("UAX")) {
-          updateParams(ComputeGradient.gradientUAX(ex));
+        }else if(inference.equals("UAB")) {
+          updateParams(ComputeGradient.gradientUAB(ex));
         }else if(inference.equals("AA")){
           updateParams(ComputeGradient.gradientAA(ex));
         } else {
@@ -170,8 +172,10 @@ public class Main implements Runnable {
               @Override
               public void run() {
                 try {
-                  if(inference.equals("UA") || inference.equals("UAX"))
+                  if(inference.equals("UA"))
                     ComputeGradient.gradientUA(ex2, false);
+                  else if(inference.equals("UAB"))
+                    ComputeGradient.gradientUAB(ex2, false);
                   else if(inference.equals("AA"))
                     ComputeGradient.gradientAA(ex2, false);
                 } catch(Exception e){
