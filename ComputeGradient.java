@@ -139,7 +139,7 @@ public class ComputeGradient {
           int t2 = 0;
           while(Math.random() * (T-B) > 1.0) t1++;
           while(Math.random() * T2 > 1.0) t2++;
-          Alignment a = new Alignment(ex.source);
+          final Alignment a = new Alignment(ex.source);
           triple.gradients.add(a.simpleInit());
           triple.logWeights.add(Double.NEGATIVE_INFINITY);
           triple.initial.add(true);
