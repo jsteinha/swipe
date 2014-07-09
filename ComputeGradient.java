@@ -54,7 +54,7 @@ public class ComputeGradient {
           double correct = 0.0;
           int T1 = B;
           while(Math.random() * (T-B) > 1.0) T1++;
-          Alignment a = new Alignment(ex.source);
+          final Alignment a = new Alignment(ex.source);
           triple.gradients.add(a.simpleInit());
           triple.logWeights.add(Double.NEGATIVE_INFINITY);
           triple.initial.add(true);
@@ -231,7 +231,7 @@ public class ComputeGradient {
         public Pair call() throws Exception {
           Pair pair = new Pair();
           double correct = 0.0;
-          Alignment a = new Alignment(ex.source);
+          final Alignment a = new Alignment(ex.source);
           for(int t = 0; t < T; t++){
             a.propose((int)(Math.random() * a.len), new Alignment.FeatureExtract() {
                                                     public HashMap<String, Double> run() {
