@@ -122,6 +122,7 @@ public class ComputeGradient {
   public static Map<String, Double> gradientUAB(Example ex) throws Exception {
     return gradientUAB(ex, true);
   }
+
   public static Map<String, Double> gradientUAB(final Example ex, boolean train) throws Exception {
     final int T = Main.T, T2 = Main.T2, B = Main.B, K = train ? Main.K : 1;
     double correct = 0.0;
@@ -191,9 +192,9 @@ public class ComputeGradient {
     double score = 0.0, edits = 0.0;
     int len = new Alignment(ex.source).len;
     for(int i = 0; i < logWeights.size(); i++){
-      score += Math.exp(logWeights.get(i)) / (K*(T-B));
+      score += Math.exp(logWeights.get(i)) / (K*(T+T2-B));
       if(logWeights.get(i) > Double.NEGATIVE_INFINITY){
-        edits += -logWeights.get(i) / (K * (T-B) * len);
+        edits += -logWeights.get(i) / (K * (T+T2-B) * len);
       }
     }
     LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f", score, edits, correct);
