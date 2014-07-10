@@ -30,8 +30,10 @@ public class Main implements Runnable {
   public static int verbosity = 0;
   @Option(gloss="number of rounds of smart initialization")
   public static int Q2 = 0;
-  @Option(gloss="number of samples for smart initialization")
-  public static int K2 = 0;
+  @Option(gloss="number of rounds of intermediate transitions")
+  public static int Q1 = 0;
+  @Option(gloss="number of samples for intermediate transitions")
+  public static int K1 = 0;
   @Option(gloss="use spaces for padding")
   public static boolean useSpaces = true;
   @Option(gloss="file for dataset")
@@ -148,7 +150,17 @@ public class Main implements Runnable {
       dumpStats("init");
       LogInfo.end_track();
     }
-    Alignment.copyFeatures();
+    Alignment.copyFeatures("init-", "A-");
+    for(int q = 0; q < Q1; q++) {
+      LogInfo.begin_track("Beginning intermediate-transition %d", q);
+      for(int i = 0; i < numTrain; i++) {
+        Example ex = examples.get(i);
+        LogInfo.begin_track("Example: %s", ex);
+        updateParams(ComputeGradient.gradientUA(ex));
+        LogInfo.end_track();
+      }
+    }
+    Alignment.copyFeatures("A-", "B-")
     for(int q = 0; q < Q; q++){
       LogInfo.begin_track("Beginning iteration %d", q);
       for(int i = 0; i < numTrain; i++){
