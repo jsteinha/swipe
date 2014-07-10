@@ -236,7 +236,7 @@ public class ComputeGradient {
           for(int t = 0; t < T; t++){
             a.propose((int)(Math.random() * a.len), new Alignment.FeatureExtract() {
                                                     public HashMap<String, Double> run() {
-                                                      return a.extractFeatures(false);
+                                                      return a.extractFeatures(false, "AA-");
                                                     }
                                                   });
             if(t >= B){
