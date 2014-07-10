@@ -40,9 +40,6 @@ public class ComputeGradient {
     return gradientUA(ex, true);
   }
 
-  public static Map<String, Double> gradientUA2(Example ex) throws Exception {
-    return gradientUA2(ex, true); 
-  }
   
   public static Map<String, Double> gradientUA(final Example ex, boolean train) throws Exception {
     final int T = Main.T, B = Main.B, K = train ? Main.K : 1;
@@ -119,6 +116,10 @@ public class ComputeGradient {
     return answer;
   }
 
+  public static Map<String, Double> gradientUA2(Example ex) throws Exception {
+    return gradientUA2(ex, true); 
+  }
+  
   public static Map<String, Double> gradientUA2(final Example ex, boolean train) throws Exception 
   {
     final int UA2 = Main.UA2;
