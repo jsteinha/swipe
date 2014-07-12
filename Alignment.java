@@ -243,7 +243,7 @@ public class Alignment {
   static void copyFeatures(String prefix1, String prefix2){
     ArrayList<String> keys = new ArrayList<String>(Main.params.keySet());
     for(String key : keys){
-      if(key.startsWith(prefix1))
+      if(key.startsWith(prefix1))w
         Main.params.put(prefix2+key.substring(prefix1.length()), Main.params.get(key));
     }
   }
