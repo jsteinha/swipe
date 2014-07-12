@@ -101,7 +101,7 @@ public class Alignment {
   // feature extraction interface.
   static class FeatureExtract {
     public HashMap<String, Double> run() {
-      return null;
+      throw new RuntimeException("FeatureExtract.run() method not implemented.");
     }  
   }
 
@@ -189,7 +189,8 @@ public class Alignment {
         if(i+1 < len && target[i+1] != c && target[i+1] != '#') begin[i+1] = true;
         target[i] = c;
         begin[i] = false;
-        curFeatures = extractFeatures();
+        // curFeatures = extractFeatures();
+        curFeatures = fe.run();
         features.put(str, curFeatures);
         logprobs.put(str, score(curFeatures));
       }
@@ -199,7 +200,8 @@ public class Alignment {
     if(i+1 < len && target[i+1] != '#') begin[i+1] = true;
     target[i] = '#';
     begin[i] = false;
-    curFeatures = extractFeatures();
+    // curFeatures = extractFeatures();
+    curFeatures = fe.run();
     features.put(str, curFeatures);
     logprobs.put(str, score(curFeatures));
     

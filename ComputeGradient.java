@@ -137,14 +137,14 @@ public class ComputeGradient {
           Triple triple = new Triple();
           double correct = 0.0;
           int t1 = B;
-          int t2 = 0;
           while(Math.random() * (T-B) > 1.0) t1++;
-          while(Math.random() * T2 > 1.0) t2++;
+          int t2 = T;
+          while(Math.random() * (T2-T) > 1.0) t2++;
           final Alignment a = new Alignment(ex.source);
           triple.gradients.add(a.simpleInit());
           triple.logWeights.add(Double.NEGATIVE_INFINITY);
           triple.initial.add(true);
-          for(int t = 0; t < t1+t2; t++){
+          for(int t = 0; t < t2; t++){
             if(t < t1) 
               triple.gradients.add(a.propose((int)(Math.random() * a.len), 
                                             new Alignment.FeatureExtract() {
@@ -161,7 +161,7 @@ public class ComputeGradient {
                                             }));
             if(t >= B){
               triple.logWeights.add(-1.0 * a.editDistance(ex.target));
-              if(a.collapse().equals(ex.target)) correct += 1.0/(K*(t1+t2-B));
+              if(a.collapse().equals(ex.target)) correct += 1.0/(K*(t2-B));
             } else {
               triple.logWeights.add(Double.NEGATIVE_INFINITY);
             }
@@ -192,9 +192,9 @@ public class ComputeGradient {
     double score = 0.0, edits = 0.0;
     int len = new Alignment(ex.source).len;
     for(int i = 0; i < logWeights.size(); i++){
-      score += Math.exp(logWeights.get(i)) / (K*(T+T2-B));
+      score += Math.exp(logWeights.get(i)) / (K*(T2-B));
       if(logWeights.get(i) > Double.NEGATIVE_INFINITY){
-        edits += -logWeights.get(i) / (K * (T+T2-B) * len);
+        edits += -logWeights.get(i) / (K * (T2-B) * len);
       }
     }
     LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f", score, edits, correct);
