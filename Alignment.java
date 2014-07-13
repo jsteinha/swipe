@@ -288,6 +288,7 @@ public class Alignment {
         }
       }
     }
+    // strategy 1: order-3 edge.
     double[][][] edges = new double[len][S][S];
     for(int i=1;i<len;i++){
       for(int j=0;j<S;j++){
@@ -312,7 +313,8 @@ public class Alignment {
         }
       }
     }
-    int index = Util.sample(marginals[len-1]);
+
+    int index = Util.sample(marginals[len-1]);           // ancestral sampling from backward.
     target[len-1] = targetOf(alphabet.get(index));
     begin[len-1] = beginOf(alphabet.get(index));
     for(int i=len-2;i>=0;i--){
