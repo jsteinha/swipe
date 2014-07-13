@@ -132,15 +132,15 @@ public class Alignment {
                                                                     // is the character of the most recent chunk before the current one
       }
     }
+    String answer = collapse();
+    Double freq = Main.dictionary.get(answer);
+    if(freq != null){ // add features based on dicitionary frequency
+      Util.update(ret,prefix+"YD");
+      Util.update(ret,prefix+"FD",Math.log(freq));
+    } else {
+      Util.update(ret,prefix+"ND");
+    }
     if(letsDict) {
-      String answer = collapse();
-      Double freq = Main.dictionary.get(answer);
-      if(freq != null){ // add features based on dicitionary frequency
-        Util.update(ret,prefix+"YD");
-        Util.update(ret,prefix+"FD",Math.log(freq));
-      } else {
-        Util.update(ret,prefix+"ND");
-      }
       for(int i = 0; i < answer.length(); i++){ // add features based on partial agreement with a dictionary
         for(int j = i+1; j <= answer.length(); j++){
           freq = Main.partialDict.get(answer.substring(i,j)); // this should probably be partialDict, oops
