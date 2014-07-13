@@ -192,9 +192,9 @@ public class ComputeGradient {
     double score = 0.0, edits = 0.0;
     int len = new Alignment(ex.source).len;
     for(int i = 0; i < logWeights.size(); i++){
-      score += Math.exp(logWeights.get(i)) / (K*(t1+t2));
+      score += Math.exp(logWeights.get(i)) / (K*(T+T1));
       if(logWeights.get(i) > Double.NEGATIVE_INFINITY){
-        edits += -logWeights.get(i) / (K * (t1+t2) * len);
+        edits += -logWeights.get(i) / (K * (T+T1) * len);
       }
     }
     LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f", score, edits, correct);
