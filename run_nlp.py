@@ -19,7 +19,6 @@ parser.add_option("--B", type="int", dest="B")
 parser.add_option("--Q", type="int", dest="Q")
 parser.add_option("--K", type="int", dest="K")
 parser.add_option("--Q2", type="int", dest="Q2")
-parser.add_option("--Q1", type="int", dest="Q1")
 parser.add_option("--K2", type="int", dest="K2")
 parser.add_option("--numTrain", type="int", dest="numTrain", default=24000)
 parser.add_option("--numTest", type="int", dest="numTest", default=1000)
@@ -38,6 +37,7 @@ name = options.name or "SCRATCH"
 
 from subprocess import call, Popen
 from glob import glob
+import os
 import shlex
 import threading
 import time
@@ -62,7 +62,7 @@ if options.compile:
   call(["mkdir", "-p", "%s/%s" % (prefix, name)])
 
 if options.run:
-  call_args = ["/u/nlp/bin/java7", "-Xmx%dg" % options.memory, "-cp .:%s:classes/%s" % (include, name), 
+  call_args = ["nohup java", "-Xmx%dg" % options.memory, "-cp .:%s:classes/%s" % (include, name), 
                "Main", "-execPoolDir %s/%s" % (prefix, name)]
   if options.nlpsub:
     time.sleep(0.5)
@@ -89,8 +89,6 @@ if options.run:
     call_args.append("-Main.K %d" % options.K)
     if options.Q2:
       call_args.append("-Main.Q2 %d" % options.Q2)
-    if options.Q1:
-      call_args.append("-Main.Q1 %d" % options.Q1)
     if options.K2:
       call_args.append("-Main.K2 %d" % options.K2)
     if options.nospaces:
@@ -115,7 +113,8 @@ if options.run:
     if options.T2:
       call_args.append("-Main.T2 %d" % options.T2)
     print 'running command: %s'  % " ".join(call_args)
-    run_cmd = lambda : call(shlex.split(" ".join(call_args)))
+    # run_cmd = lambda : call(shlex.split(" ".join(call_args)))
+    run_cmd = lambda : os.system(" ".join(call_args)+" &")
     #if options.num_threads == 1:
     run_cmd()
     #else:
