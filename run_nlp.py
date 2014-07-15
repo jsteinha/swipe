@@ -37,6 +37,7 @@ name = options.name or "SCRATCH"
 
 from subprocess import call, Popen
 from glob import glob
+import os
 import shlex
 import threading
 import time
@@ -61,7 +62,7 @@ if options.compile:
   call(["mkdir", "-p", "%s/%s" % (prefix, name)])
 
 if options.run:
-  call_args = ["/u/nlp/share/bin/java7", "-Xmx%dg" % options.memory, "-cp .:%s:classes/%s" % (include, name), 
+  call_args = ["nohup java", "-Xmx%dg" % options.memory, "-cp .:%s:classes/%s" % (include, name), 
                "Main", "-execPoolDir %s/%s" % (prefix, name)]
   if options.nlpsub:
     time.sleep(0.5)
@@ -112,7 +113,8 @@ if options.run:
     if options.T2:
       call_args.append("-Main.T2 %d" % options.T2)
     print 'running command: %s'  % " ".join(call_args)
-    run_cmd = lambda : call(shlex.split(" ".join(call_args)))
+    # run_cmd = lambda : call(shlex.split(" ".join(call_args)))
+    run_cmd = lambda : os.system(" ".join(call_args)+" &")
     #if options.num_threads == 1:
     run_cmd()
     #else:
