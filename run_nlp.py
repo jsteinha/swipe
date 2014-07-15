@@ -62,7 +62,7 @@ if options.compile:
   call(["mkdir", "-p", "%s/%s" % (prefix, name)])
 
 if options.run:
-  call_args = ["nohup java", "-Xmx%dg" % options.memory, "-cp .:%s:classes/%s" % (include, name), 
+  call_args = ["/u/nlp/bin/java7", "-Xmx%dg" % options.memory, "-cp .:%s:classes/%s" % (include, name), 
                "Main", "-execPoolDir %s/%s" % (prefix, name)]
   if options.nlpsub:
     time.sleep(0.5)
@@ -114,7 +114,7 @@ if options.run:
       call_args.append("-Main.T2 %d" % options.T2)
     print 'running command: %s'  % " ".join(call_args)
     # run_cmd = lambda : call(shlex.split(" ".join(call_args)))
-    run_cmd = lambda : os.system(" ".join(call_args)+" &")
+    run_cmd = lambda : os.system(" ".join(call_args))
     #if options.num_threads == 1:
     run_cmd()
     #else:
