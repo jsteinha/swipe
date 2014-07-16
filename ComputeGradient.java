@@ -156,7 +156,10 @@ public class ComputeGradient {
               triple.gradients.add(a.propose((int)(Math.random() * a.len), 
                                             new Alignment.FeatureExtract() {
                                               public HashMap<String, Double> run() {
+                                                // strategy 1: not sharing parameters.
                                                 return a.extractFeatures(true, "last-");
+                                                // strategy 2: sharing parameters of second- and third-stage chain.
+                                                // return a.extractFeatures(true, "");
                                               }
                                             }));
             if(t >= B){

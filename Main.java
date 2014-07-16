@@ -149,12 +149,9 @@ public class Main implements Runnable {
       dumpStats("init");
       LogInfo.end_track();
     }
-    // strategy 1: sharing parameters of second- and third-stage chain.
-    Alignment.copyFeatures("init-", "");
     
-    // strategy 2: sharing parameters of second- and third-stage chain.
-    // Alignment.copyFeatures("init-", "");
-    // Alignment.copyFeatures("init-", "last-");
+    Alignment.copyFeatures("init-", "");
+    Alignment.copyFeatures("init-", "last-");
 
     for(int q = 0; q < Q; q++){
       LogInfo.begin_track("Beginning iteration %d", q);
