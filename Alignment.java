@@ -120,21 +120,21 @@ public class Alignment {
   }
 
   HashMap<String, Double> extractFeatures() {
-    return extractFeatures(false);
+    return extractFeatures(false, "");
   }
 
-  HashMap<String, Double> extractFeatures(boolean letsDict){
+  HashMap<String, Double> extractFeatures(boolean letsDict, String prefix){
     HashMap<String, Double> ret = new HashMap<String, Double>();
     for(int i = 0; i < len; i++){
       String cur_src = "" + source[i],
              cur_tar = c2s(target[i], begin[i]);
-      Util.update(ret, src_tar(cur_src, cur_tar)); // (source[i],target[i],begin[i])
+      Util.update(ret, prefix+src_tar(cur_src, cur_tar)); // (source[i],target[i],begin[i])
       String prev;
       if(i > 0){
         prev = c2s(target[i-1], begin[i-1]);
-        Util.update(ret,src_tar_prevT1(cur_src, cur_tar, prev)); // (source[i],target[i],begin[i],target[i-1],begin[i-1])
+        Util.update(ret,prefix+src_tar_prevT1(cur_src, cur_tar, prev)); // (source[i],target[i],begin[i],target[i-1],begin[i-1])
         prev = ""+source[i-1];
-        Util.update(ret,src_tar_prevS(cur_src, cur_tar, prev)); // (source[i],target[i],begin[i],source[i-1])
+        Util.update(ret,prefix+src_tar_prevS(cur_src, cur_tar, prev)); // (source[i],target[i],begin[i],source[i-1])
       }
       int j = i;
       while(j >= 0 && !begin[j]) j--;
@@ -142,28 +142,28 @@ public class Alignment {
       while(j >= 0 && target[j] == '#') j--;
       if(j >= 0){
         prev = ""+target[j];
-        Util.update(ret,src_tar_prevT2(cur_src, cur_tar, prev)); // (source[i],target[i],begin[i],X[i]), where X[i] 
+        Util.update(ret,prefix+src_tar_prevT2(cur_src, cur_tar, prev)); // (source[i],target[i],begin[i],X[i]), where X[i] 
                                                                     // is the character of the most recent chunk before the current one
       }
     }
     String answer = collapse();
     Double freq = Main.dictionary.get(answer);
     if(freq != null){ // add features based on dicitionary frequency
-      Util.update(ret,"YD");
-      Util.update(ret,"FD",Math.log(freq));
+      Util.update(ret,prefix+"YD");
+      Util.update(ret,prefix+"FD",Math.log(freq));
     } else {
-      Util.update(ret,"ND");
+      Util.update(ret,prefix+"ND");
     }
     if(letsDict) {
       for(int i = 0; i < answer.length(); i++){ // add features based on partial agreement with a dictionary
         for(int j = i+1; j <= answer.length(); j++){
           freq = Main.partialDict.get(answer.substring(i,j)); // this should probably be partialDict, oops
           if(freq != null){
-            Util.update(ret,"YP"+(j-i));
-            Util.update(ret,"FP"+(j-i),Math.log(freq));
+            Util.update(ret,prefix+"YP"+(j-i));
+            Util.update(ret,prefix+"FP"+(j-i),Math.log(freq));
           }
           else {
-            Util.update(ret,"NP"+(j-i));
+            Util.update(ret,prefix+"NP"+(j-i));
           }
         }
       }
@@ -256,12 +256,10 @@ public class Alignment {
   }
 
 
-  static void copyFeatures(){
+  static void copyFeatures(String prefixA, String prefixB){
     ArrayList<String> keys = new ArrayList<String>(Main.params.keySet());
     for(String key : keys){
-      if(!key.startsWith("init-"))
-        throw new RuntimeException("this should never happen: " + key);
-      Main.params.put(key.substring(5), Main.params.get(key));
+      Main.params.put(prefixB+key.substring(prefixA.length()), Main.params.get(key));
     }
   }
 
