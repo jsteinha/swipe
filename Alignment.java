@@ -6,7 +6,21 @@ public class Alignment {
   char[] source; // x
   char[] target; // z
   boolean[] begin; // marks which characters are starts of a chunk
+  double[][] marginalsCache; // cache the value of marginal when doing i.i.d sampling from simple model.
+  double[][][] edgesCache;    // cache edge values.
+  int S;                      // alphabet size.
+
+  ArrayList<String> alphabet = new ArrayList<String>();
+  
   public Alignment(String theSource){
+    // init alphabet.
+    for(char c = 'a'; c <= 'z'; c++){
+        alphabet.add(c2s(c,false));
+        alphabet.add(c2s(c,true));
+    }
+    alphabet.add(c2s('#',false));
+    this.S = alphabet.size();
+    // init state.
     if(Main.useSpaces){
       len = 2 * theSource.length() + 1; // pad with spaces
     } else {
@@ -267,50 +281,53 @@ public class Alignment {
     return ret;
   }
 
-  HashMap<String,Double> simpleInit(){ // initializes alignment according to simple model (Markov chain)
-    ArrayList<String> alphabet = new ArrayList<String>();
-    for(char c = 'a'; c <= 'z'; c++){
-      alphabet.add(c2s(c,false));
-      alphabet.add(c2s(c,true));
-    }
-    alphabet.add(c2s('#',false));
-    int S = alphabet.size();
-    double[][] nodes = new double[len][S];
-    for(int i = 0; i < len; i++){   
-      for(int j = 0; j < S; j++){
-        nodes[i][j] += Util.getSafe(Main.params, 
-                        "init-"+src_tar(""+source[i],alphabet.get(j)));
-        if(i>0){
-          nodes[i][j] += Util.getSafe(Main.params,
-                          "init-"+src_tar_prevS(""+source[i],
-                                                alphabet.get(j),
-                                                ""+source[i-1]));
-        }
-      }
-    }
-    double[][][] edges = new double[len][S][S];
-    for(int i=1;i<len;i++){
-      for(int j=0;j<S;j++){
-        for(int k=0;k<S;k++){
-          // gives probability of k -> j
-          edges[i][j][k] += Util.getSafe(Main.params,
-            "init-"+src_tar_prevT1(""+source[i],alphabet.get(j),alphabet.get(k)));
-        }
-      }
-    }
-    double[][] marginals = new double[len][S];
-    for(int j = 0; j < S; j++){
-      marginals[0][j] = nodes[0][j];
-    }
-    for(int i=1;i<len;i++){
-      for(int j=0;j<S;j++){
-        marginals[i][j] = Double.NEGATIVE_INFINITY;
-        for(int k=0;k<S;k++){
-          marginals[i][j] = Util.lse(marginals[i][j],
-                                     marginals[i-1][k] + edges[i][j][k]);   // dynamic programming in log-space.
+  HashMap<String, Double> simpleInit() {
+    return this.simpleInit(false);
+  }
 
+  HashMap<String,Double> simpleInit(boolean useCache){ // initializes alignment according to simple model (Markov chain)
+    double[][] marginals = marginalsCache;
+    double[][][] edges = edgesCache;
+    if(!useCache) {
+      marginals = new double[len][S];
+      edges = new double[len][S][S];
+      double[][] nodes = new double[len][S];
+      for(int i = 0; i < len; i++){   
+        for(int j = 0; j < S; j++){
+          nodes[i][j] += Util.getSafe(Main.params, 
+                          "init-"+src_tar(""+source[i],alphabet.get(j)));
+          if(i>0){
+            nodes[i][j] += Util.getSafe(Main.params,
+                            "init-"+src_tar_prevS(""+source[i],
+                                                  alphabet.get(j),
+                                                  ""+source[i-1]));
+          }
         }
       }
+      for(int i=1;i<len;i++){
+        for(int j=0;j<S;j++){
+          for(int k=0;k<S;k++){
+            // gives probability of k -> j
+            edges[i][j][k] += Util.getSafe(Main.params,
+              "init-"+src_tar_prevT1(""+source[i],alphabet.get(j),alphabet.get(k)));
+          }
+        }
+      }
+      for(int j = 0; j < S; j++){
+        marginals[0][j] = nodes[0][j];
+      }
+      for(int i=1;i<len;i++){
+        for(int j=0;j<S;j++){
+          marginals[i][j] = Double.NEGATIVE_INFINITY;
+          for(int k=0;k<S;k++){
+            marginals[i][j] = Util.lse(marginals[i][j],
+                                       marginals[i-1][k] + edges[i][j][k]);   // dynamic programming in log-space.
+
+          }
+        }
+      }
+      marginalsCache = marginals;
+      edgesCache = edges;
     }
     int index = Util.sample(marginals[len-1]);
     target[len-1] = targetOf(alphabet.get(index));

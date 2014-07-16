@@ -14,15 +14,15 @@ public class ComputeGradient {
     double correct = 0.0, edits = 0.0, score = 0.0;
     Alignment a = new Alignment(ex.source);
     for(int k = 0; k < K2; k++){
-      features.add(a.simpleInit());
+      features.add(a.simpleInit(k != 0));
       int dist = a.editDistance(ex.target);
       logWeights.add(-1.0 * dist);  
       score += Math.exp(-dist) / K2;
       edits += dist / (1.0 * K2 * a.len);
       if(a.collapse().equals(ex.target)) correct += 1.0/K2;
-      LogInfo.logs("final sample: %s", a.collapse());
+      // LogInfo.logs("final sample: %s", a.collapse());
     }
-    LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f", score, edits, correct);
+    // LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f", score, edits, correct);
     Main.score.add(score);
     Main.edits.add(edits);
     Main.correct.add(correct);
@@ -73,7 +73,7 @@ public class ComputeGradient {
             }
             triple.initial.add(false);
           }
-          LogInfo.logs("final sample: %s", a.collapse());
+          // LogInfo.logs("final sample: %s", a.collapse());
           triple.correct = correct;
           return triple;
         }
@@ -167,7 +167,7 @@ public class ComputeGradient {
             }
             triple.initial.add(false);
           }
-          LogInfo.logs("final sample: %s", a.collapse());
+          // LogInfo.logs("final sample: %s", a.collapse());
           triple.correct = correct;
           return triple;
         }

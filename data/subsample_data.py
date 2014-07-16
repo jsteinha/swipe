@@ -7,7 +7,7 @@ for line in data:
   word = line.split(' ')[0]
   if len(word) <= 3:
     print word
-    output.append(word)
+    output.append(line)
     unique[word] = 1
 print 'length = ', len(output)
 print 'unique = ', len(unique.keys())

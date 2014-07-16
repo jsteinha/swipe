@@ -35,17 +35,17 @@ public class Main implements Runnable {
   @Option(gloss="use spaces for padding")
   public static boolean useSpaces = true;
   @Option(gloss="file for dataset")
-  public static String dataset = "train2.dat";
+  public static String dataset = "data/train2_small.dat";
   @Option(gloss="word counts")
   public static String dict_file = "counts.dat";
   @Option(gloss="partial counts")
   public static String partial_dict_file = "partial_counts.dat";
   @Option(gloss="number of training examples")
-  public static int numTrain = 24000;
+  public static int numTrain = 9000;
   @Option(gloss="number of test examples")
-  public static int numTest = 1000;
+  public static int numTest = 553;
   @Option(gloss="how frequently to print out summary statistics of test accuracy")
-  public static int testFrequency = 6000;
+  public static int testFrequency = 0;
   @Option(gloss="number of threads to use")
   public static int numThreads = 5;
   
@@ -141,9 +141,10 @@ public class Main implements Runnable {
       LogInfo.begin_track("Beginning pre-iteration %d", q);
       for(int i = 0; i < numTrain; i++){
         Example ex = examples.get(i);
-        LogInfo.begin_track("Example: %s", ex);
+        if(i%10 == 0) System.out.println("# "+i);
+        // LogInfo.begin_track("Example: %s", ex);
         updateParams(ComputeGradient.gradientUU(ex));
-        LogInfo.end_track();
+        // LogInfo.end_track();
       }
       dumpStats("init");
       LogInfo.end_track();
@@ -152,8 +153,9 @@ public class Main implements Runnable {
     for(int q = 0; q < Q; q++){
       LogInfo.begin_track("Beginning iteration %d", q);
       for(int i = 0; i < numTrain; i++){
+        if(i%10 == 0) System.out.println("# "+i);
         Example ex = examples.get(i);
-        LogInfo.logs("Example: %s", ex);
+        // LogInfo.logs("Example: %s", ex);
         if(inference.equals("UA")){
           updateParams(ComputeGradient.gradientUA(ex));
         }else if(inference.equals("UAB")) {
@@ -195,7 +197,7 @@ public class Main implements Runnable {
         Util.printMap(params);
         LogInfo.end_track();
       }
-      LogInfo.end_track();
+      // LogInfo.end_track();
     }
   }
 
