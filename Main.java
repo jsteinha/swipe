@@ -157,10 +157,13 @@ public class Main implements Runnable {
     int T2 = Main.T2;
 
     for(int q = 0; q < Q; q++){
-      
       LogInfo.begin_track("Beginning iteration %d", q);
       for(int i = 0; i < numTrain; i++){
-        if(i%10 == 0) System.out.println("# "+i);
+        Main.T = T*(q*numTrain+i)/(Q*numTrain);
+        Main.T2 = T2*(q*numTrain+i)/(Q*numTrain);
+        if(i%1000 == 0) {
+          System.out.println("# "+i+", T = "+Main.T+", T2 = "+Main.T2);
+        }
         Example ex = examples.get(i);
         // LogInfo.logs("Example: %s", ex);
         if(inference.equals("UA")){
