@@ -10,7 +10,7 @@ env = dict()
 cmd = os.system
 
 def __git_update__(name):
-  cmd("ssh -t tianlins@jacob.stanford.edu \"ssh %s \'cd scr/swipe && git checkout %s && git pull\' \""\
+  cmd("ssh -t tianlins@jacob.stanford.edu \"ssh %s \'cd scr/swipe && git pull --all && git checkout %s \' \""\
                                                   %(env[name]['machine'], env[name]['branch']))
 
 def __compile__(name):

@@ -16,7 +16,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.hold(True)
-print 'num_series', num_series
 for n in range(num_series-num_plots, num_series):
   ni = n-num_series+num_plots
   f = open('%s/test-%d' % (name, n))
@@ -35,7 +34,8 @@ for n in range(num_series-num_plots, num_series):
       train_size = int(line.split()[1])
       test_frequency = int(line.split()[3])
   print metadata
-  plt.plot(np.array(range(len(nums)))*float(test_frequency)/float(train_size), nums, '%s%s' % (colors[ni % len(colors)], style[ni / len(colors)]), label=' '.join(metadata))
+  if len(nums) > 0:
+    plt.plot(np.array(range(len(nums)))*float(test_frequency)/float(train_size), nums, '%s%s' % (colors[ni % len(colors)], style[ni / len(colors)]), label=' '.join(metadata))
 # plt.title(name)
 plt.xlabel('Effective passes through training data')
 plt.ylabel('Test accuracy')

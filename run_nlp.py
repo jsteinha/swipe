@@ -20,15 +20,16 @@ parser.add_option("--Q", type="int", dest="Q")
 parser.add_option("--K", type="int", dest="K")
 parser.add_option("--Q2", type="int", dest="Q2")
 parser.add_option("--K2", type="int", dest="K2")
-parser.add_option("--numTrain", type="int", dest="numTrain", default=24000)
-parser.add_option("--numTest", type="int", dest="numTest", default=1000)
-parser.add_option("--testFrequency", type="int", dest="testFrequency", default=6000)
+parser.add_option("--numTrain", type="int", dest="numTrain", default=9000)
+parser.add_option("--numTest", type="int", dest="numTest", default=553)
+parser.add_option("--testFrequency", type="int", dest="testFrequency", default=1000)
 parser.add_option("--spaces",action="store_false",dest="nospaces",default=True)
 parser.add_option("--inference", type="string", dest="inference")
 parser.add_option("--learning", type="string", dest="learning")
 parser.add_option("--verbosity", type="int", dest="verbosity", default=0)
 parser.add_option("--numExamples", type="int", dest="num_examples")
 parser.add_option("--nlpsub",action="store_true",dest="nlpsub",default=False)
+parser.add_option("--dataset", type="string", dest="dataset",default="data/train2_small.dat")
 
 (options, args) = parser.parse_args()
 if not options.name:
@@ -37,7 +38,6 @@ name = options.name or "SCRATCH"
 
 from subprocess import call, Popen
 from glob import glob
-import os
 import shlex
 import threading
 import time
@@ -112,9 +112,10 @@ if options.run:
       call_args.append("-Main.testFrequency %d" % options.testFrequency)
     if options.T2:
       call_args.append("-Main.T2 %d" % options.T2)
+    if options.dataset:
+      call_args.append("-Main.dataset %s" % options.dataset)
     print 'running command: %s'  % " ".join(call_args)
-    # run_cmd = lambda : call(shlex.split(" ".join(call_args)))
-    run_cmd = lambda : os.system(" ".join(call_args))
+    run_cmd = lambda : call(shlex.split(" ".join(call_args)))
     #if options.num_threads == 1:
     run_cmd()
     #else:
