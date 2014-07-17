@@ -153,7 +153,11 @@ public class Main implements Runnable {
     Alignment.copyFeatures("init-", "");
     Alignment.copyFeatures("init-", "last-");
 
+    int T = Main.T;
+    int T2 = Main.T2;
+
     for(int q = 0; q < Q; q++){
+      
       LogInfo.begin_track("Beginning iteration %d", q);
       for(int i = 0; i < numTrain; i++){
         if(i%10 == 0) System.out.println("# "+i);

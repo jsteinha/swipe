@@ -136,7 +136,7 @@ public class ComputeGradient {
         public Triple call() throws Exception {
           Triple triple = new Triple();
           double correct = 0.0;
-          int t1 = 0;
+          int t1 = 1;
           while(Math.random() * T > 1.0) t1++;
           int t2 = 0;
           while(Math.random() * T2 > 1.0) t2++;
