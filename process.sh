@@ -6,5 +6,11 @@ for n in `seq 0 $((NUM-1))`
 do
   awk '/test correct/ { print $5; }' $1/record-$n > $1/test-$n
 done
-python plot2.py $1 $NUM
+LAST=$NUM
+if [ ! -z "$2" ] 
+  then
+    LAST=$2
+fi
+echo $LAST
+python plot2.py $1 $NUM $LAST
 open plot.pdf

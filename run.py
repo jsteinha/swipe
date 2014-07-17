@@ -29,6 +29,7 @@ parser.add_option("--learning", type="string", dest="learning")
 parser.add_option("--verbosity", type="int", dest="verbosity", default=0)
 parser.add_option("--numExamples", type="int", dest="num_examples")
 parser.add_option("--nlpsub",action="store_true",dest="nlpsub",default=False)
+parser.add_option("--dataset", type="string", dest="dataset",default="data/train2_small.dat")
 
 (options, args) = parser.parse_args()
 if not options.name:
@@ -111,6 +112,8 @@ if options.run:
       call_args.append("-Main.testFrequency %d" % options.testFrequency)
     if options.T2:
       call_args.append("-Main.T2 %d" % options.T2)
+    if options.dataset:
+      call_args.append("-Main.dataset %s" % options.dataset)
     print 'running command: %s'  % " ".join(call_args)
     run_cmd = lambda : call(shlex.split(" ".join(call_args)))
     #if options.num_threads == 1:

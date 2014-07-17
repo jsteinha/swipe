@@ -133,7 +133,7 @@ public class Main implements Runnable {
     partialDict = Reader.getDict(partial_dict_file);
     Record.add("sources", dataset, dict_file, partial_dict_file);
     Record.add("learning", learning, eta, Q2, K2);
-    Record.add("inference", inference, T, B, K, useSpaces);
+    Record.add("inference", inference, B, T, T2, K, useSpaces);
     Record.add("sizes", numTrain, numTest, testFrequency);
     Record.flush();
 
