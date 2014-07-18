@@ -44,6 +44,10 @@ public class ComputeGradient {
     final int T = Main.T, B = Main.B, K = train ? Main.K : 1;
     final double c = Main.c;
 
+    if(Main.params.get("lambda") >= 0) { // projection.
+      Main.params.put("lambda", -0.1);
+    }
+
     double correct = 0.0;
     Triple result = new Triple();
     ArrayList<Future<Triple>> samplers = new ArrayList<Future<Triple>>();
@@ -59,17 +63,19 @@ public class ComputeGradient {
           }catch(Exception ee) {;}
           Triple triple = new Triple();
           double correct = 0.0;
-          int T1 = B;
+          int T1 = 0;
           if(lambda >= 0)
             throw new Exception("lambda should not be >= 0.");
-          while(Math.log(Math.random()) <= lambda/(double)ex.source.length()) T1++;
+          double ratio = lambda/(double)ex.source.length();
+          while(Math.log(Math.random()) <= ratio) T1++;
           final Alignment a = new Alignment(ex.source);
           triple.gradients.add(a.simpleInit());
           triple.gradientsTime.add(0.0);
           triple.logWeightsTime.add(Double.NEGATIVE_INFINITY);
           triple.logWeights.add(Double.NEGATIVE_INFINITY);
           triple.initial.add(true);
-          for(int t = 0; t < T1; t++){
+          triple.effT = T1;
+          for(int t = 0; t < B+T1; t++){
             triple.gradients.add(a.propose((int)(Math.random() * a.len), 
                                             new Alignment.FeatureExtract() {
                                               public HashMap<String, Double> run() {
@@ -78,8 +84,10 @@ public class ComputeGradient {
                                             }));
             if(t >= B){
               triple.gradientsTime.add((t-B)/(double)ex.source.length());
-              triple.logWeights.add(-1.0 * a.editDistance(ex.target)-2*c*Math.max(0, t+B-T));
-              triple.logWeightsTime.add(-2*c*Math.max(0, t+B-T));
+              double pweight = -2*c*Math.max(0, t-T)-Math.log(1-Math.exp(ratio))
+                                          +ratio*(T-B)-Math.log(1-Math.exp(ratio-c));
+              triple.logWeightsTime.add(pweight);
+              triple.logWeights.add(-1.0 * a.editDistance(ex.target)+pweight);
               if(a.collapse().equals(ex.target)) correct += 1.0/(K*(T1-B));
             } else {
               triple.gradientsTime.add(0.0);
@@ -103,9 +111,11 @@ public class ComputeGradient {
     }
     threadPool.shutdown();
     threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+    int allT = 0;
     if(train){
       for(Future<Triple> sampler : samplers){
         Triple ret = sampler.get();
+        allT += ret.effT;
         ret.appendTo(result);
         correct += ret.correct;
       }
@@ -113,12 +123,12 @@ public class ComputeGradient {
     double score = 0.0, edits = 0.0;
     int len = new Alignment(ex.source).len;
     for(int i = 0; i < result.logWeights.size(); i++){
-      score += Math.exp(result.logWeights.get(i)) / (K*(T-B));
+      score += Math.exp(result.logWeights.get(i)) / allT;
       if(result.logWeights.get(i) > Double.NEGATIVE_INFINITY){
-        edits += -result.logWeights.get(i) / (K * (T-B) * len);
+        edits += -(result.logWeights.get(i)-result.logWeightsTime.get(i)) / (allT * len);
       }
     }
-    LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f", score, edits, correct);
+    // LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f", score, edits, correct);
     Main.score.add(score);
     Main.edits.add(edits);
     Main.correct.add(correct);
@@ -127,7 +137,6 @@ public class ComputeGradient {
     Util.logNormalize(result.logWeightsTime);
     Map<String, Double> answer = new HashMap<String, Double>();
     double cumulativeWeight = 0.0;
-    double prior_lambdaG = 0;
     for(int i = result.logWeights.size() - 1; i >= 0; i--){
       cumulativeWeight += Math.exp(result.logWeights.get(i));
       Util.update(answer, "lambda", (Math.exp(result.logWeights.get(i))
@@ -328,6 +337,7 @@ class Triple {
   ArrayList<Double> logWeightsTime = new ArrayList<Double>();
   ArrayList<Boolean> initial = new ArrayList<Boolean>();
   double correct = 0.0;
+  int effT = 0;
   public Triple() {}
   void appendTo(Triple triple){
     triple.gradients.addAll(this.gradients);
