@@ -89,12 +89,12 @@ public class Util {
   }
 
   public static int sample(double[] logprobs){
-    sample(logprobs, logprobs.length)
+    return sample(logprobs, logprobs.length);
   }
 
   public static int sampleGeometric(double logeps) {
     int t = 0;
-    while(log(Math.random()) >= logeps) t++;
+    while(Math.log(Math.random()) >= logeps) t++;
     return t;
   }
 

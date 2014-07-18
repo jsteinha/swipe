@@ -51,8 +51,8 @@ public class Main implements Runnable {
   @Option(gloss="target number of transitions (used for computational regularization")
   public static int Tstar = 40;
   @Option(gloss="extent of computational regularization")
-  public static float c = 1;
-  
+  public static float c = 0;  // default: no regularization.
+   
 
   //static HashMap<String, Double> params = new HashMap<String, Double>();
   static HashMap<String, Double> G1 = new HashMap<String, Double>(),
@@ -155,19 +155,15 @@ public class Main implements Runnable {
     
     Alignment.copyFeatures("init-", "");
     Alignment.copyFeatures("init-", "last-");
-    params.put("lambda1", 0);
-    params.put("lambda2", 0);
+    Main.params.put("lambda", -1.0);
 
-    int T = Main.T;
-    int T2 = Main.T2;
 
     for(int q = 0; q < Q; q++){
       LogInfo.begin_track("Beginning iteration %d", q);
       for(int i = 0; i < numTrain; i++){
-        Main.T = T*(q*numTrain+i)/(Q*numTrain);
-        Main.T2 = T2*(q*numTrain+i)/(Q*numTrain);
         if(i%1000 == 0) {
           System.out.println("# "+i+", T = "+Main.T+", T2 = "+Main.T2);
+          System.out.println("lambda = "+Main.params.get("lambda"));
         }
         Example ex = examples.get(i);
         // LogInfo.logs("Example: %s", ex);
