@@ -88,7 +88,7 @@ public class ComputeGradient {
                                           +ratio*(T-B)-Math.log(1-Math.exp(ratio-c));
               triple.logWeightsTime.add(pweight);
               triple.logWeights.add(-1.0 * a.editDistance(ex.target)+pweight);
-              if(a.collapse().equals(ex.target)) correct += 1.0/(K*(T1-B));
+              if(a.collapse().equals(ex.target)) correct += 1.0/(K*T1);
             } else {
               triple.gradientsTime.add(0.0);
               triple.logWeights.add(Double.NEGATIVE_INFINITY);
@@ -101,25 +101,25 @@ public class ComputeGradient {
           return triple;
         }
       };
-      if(train) {
-        samplers.add(threadPool.submit(sampler));
-      } else {
-        Triple ret = sampler.call();
-        ret.appendTo(result);
-        correct += ret.correct;
-      }
+      // if(train) {
+      samplers.add(threadPool.submit(sampler));
+      // } else {
+      //   Triple ret = sampler.call();
+      //   ret.appendTo(result);
+      //   correct += ret.correct;
+      // }
     }
     threadPool.shutdown();
     threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
     int allT = 0;
-    if(train){
+    // if(train){
       for(Future<Triple> sampler : samplers){
         Triple ret = sampler.get();
         allT += ret.effT;
         ret.appendTo(result);
         correct += ret.correct;
       }
-    }
+    // }
     double score = 0.0, edits = 0.0;
     int len = new Alignment(ex.source).len;
     for(int i = 0; i < result.logWeights.size(); i++){
