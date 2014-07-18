@@ -51,13 +51,14 @@ public class Main implements Runnable {
   @Option(gloss="target number of transitions (used for computational regularization")
   public static int Tstar = 40;
   @Option(gloss="extent of computational regularization")
-  public static float c = 0;  // default: no regularization.
+  public static double c = 0;  // default: no regularization.
    
 
   //static HashMap<String, Double> params = new HashMap<String, Double>();
   static HashMap<String, Double> G1 = new HashMap<String, Double>(),
                                  G2 = new HashMap<String, Double>(),
-                                 params = new HashMap<String, Double>();
+                                 params = new HashMap<String, Double>(),
+                                 records = new HashMap<String, Double>();
   static HashMap<String, Double> dictionary, partialDict;
   static StatFig score = new StatFig(),
                  edits = new StatFig(),
@@ -155,7 +156,7 @@ public class Main implements Runnable {
     
     Alignment.copyFeatures("init-", "");
     Alignment.copyFeatures("init-", "last-");
-    Main.params.put("lambda", -1.0);
+    Main.params.put("lambda", -5.0);
 
 
     for(int q = 0; q < Q; q++){
@@ -163,7 +164,7 @@ public class Main implements Runnable {
       for(int i = 0; i < numTrain; i++){
         if(i%1000 == 0) {
           System.out.println("# "+i+", T = "+Main.T+", T2 = "+Main.T2);
-          System.out.println("lambda = "+Main.params.get("lambda"));
+          System.out.println("lambda = "+Main.params.get("lambda")+" , effT = "+Main.records.get("T"));
         }
         Example ex = examples.get(i);
         // LogInfo.logs("Example: %s", ex);

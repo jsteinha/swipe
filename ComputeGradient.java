@@ -74,8 +74,8 @@ public class ComputeGradient {
           triple.logWeightsTime.add(Double.NEGATIVE_INFINITY);
           triple.logWeights.add(Double.NEGATIVE_INFINITY);
           triple.initial.add(true);
-          triple.effT = T1;
-          for(int t = 0; t < B+T1; t++){
+          triple.effT = T1+1;
+          for(int t = 0; t <= B+T1; t++){
             triple.gradients.add(a.propose((int)(Math.random() * a.len), 
                                             new Alignment.FeatureExtract() {
                                               public HashMap<String, Double> run() {
@@ -85,10 +85,10 @@ public class ComputeGradient {
             if(t >= B){
               triple.gradientsTime.add((t-B)/(double)ex.source.length());
               double pweight = -2*c*Math.max(0, t-T)-Math.log(1-Math.exp(ratio))
-                                          +ratio*(T-B)-Math.log(1-Math.exp(ratio-c));
+                                          +ratio*(T-B)+Math.log(1-Math.exp(ratio-c));
               triple.logWeightsTime.add(pweight);
               triple.logWeights.add(-1.0 * a.editDistance(ex.target)+pweight);
-              if(a.collapse().equals(ex.target)) correct += 1.0/(K*T1);
+              if(a.collapse().equals(ex.target)) correct += 1.0/(K*(T1+1));
             } else {
               triple.gradientsTime.add(0.0);
               triple.logWeights.add(Double.NEGATIVE_INFINITY);
@@ -96,7 +96,7 @@ public class ComputeGradient {
             }
             triple.initial.add(false);
           }
-          // LogInfo.logs("final sample: %s", a.collapse());
+          // LogInfo.logs("target: %s, final sample: %s", ex.target, a.collapse());
           triple.correct = correct;
           return triple;
         }
@@ -120,15 +120,18 @@ public class ComputeGradient {
         correct += ret.correct;
       }
     // }
+    Main.records.put("T", (double)allT/K);
+
     double score = 0.0, edits = 0.0;
     int len = new Alignment(ex.source).len;
+
     for(int i = 0; i < result.logWeights.size(); i++){
-      score += Math.exp(result.logWeights.get(i)) / allT;
+      score += Math.exp(result.logWeights.get(i)) / (double)allT;
       if(result.logWeights.get(i) > Double.NEGATIVE_INFINITY){
         edits += -(result.logWeights.get(i)-result.logWeightsTime.get(i)) / (allT * len);
       }
     }
-    // LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f", score, edits, correct);
+    // LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f, average T: %f", score, edits, correct, B+allT/(double)K);
     Main.score.add(score);
     Main.edits.add(edits);
     Main.correct.add(correct);
@@ -204,7 +207,7 @@ public class ComputeGradient {
             }
             triple.initial.add(false);
           }
-          // LogInfo.logs("final sample: %s", a.collapse());
+          LogInfo.logs("final sample: %s", a.collapse());
           triple.correct = correct;
           return triple;
         }
@@ -234,7 +237,7 @@ public class ComputeGradient {
         edits += -result.logWeights.get(i) / (K * (T+T2+1) * len);
       }
     }
-    // LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f", score, edits, correct);
+    LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f", score, edits, correct);
     Main.score.add(score);
     Main.edits.add(edits);
     Main.correct.add(correct);

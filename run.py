@@ -20,6 +20,7 @@ parser.add_option("--Q", type="int", dest="Q")
 parser.add_option("--K", type="int", dest="K")
 parser.add_option("--Q2", type="int", dest="Q2")
 parser.add_option("--K2", type="int", dest="K2")
+parser.add_option("--c", type="float", dest="c", default=0)
 parser.add_option("--numTrain", type="int", dest="numTrain", default=9000)
 parser.add_option("--numTest", type="int", dest="numTest", default=553)
 parser.add_option("--testFrequency", type="int", dest="testFrequency", default=1000)
@@ -114,6 +115,7 @@ if options.run:
       call_args.append("-Main.T2 %d" % options.T2)
     if options.dataset:
       call_args.append("-Main.dataset %s" % options.dataset)
+    call_args.append("-Main.c %f" % options.c)
     print 'running command: %s'  % " ".join(call_args)
     run_cmd = lambda : call(shlex.split(" ".join(call_args)))
     #if options.num_threads == 1:
