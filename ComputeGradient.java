@@ -124,22 +124,29 @@ public class ComputeGradient {
   }
 
   public static Map<String, Double> gradientUAB(final Example ex, boolean train) throws Exception {
-    final int T = Main.T, T2 = Main.T2, B = Main.B, K = train ? Main.K : 1;
+    final int T = Main.T, T2 = Main.T2, B = Main.B, K = train ? Main.K : 1, Tstar = Main.Tstar, c = Main.c;
+    double exlen = ex.source.length();
+    double lambda1 = params.get("lambda1"), lambda2 = params.get("lambda2");
+    double[] marginals = new double[Tstar];
+
     double correct = 0.0;
     ArrayList<Map<String, Double> > gradients = new ArrayList<Map<String, Double>>();
     ArrayList<Double> logWeights = new ArrayList<Double>();
     ArrayList<Boolean> initial = new ArrayList<Boolean>();
     ArrayList<Future<Triple>> samplers = new ArrayList<Future<Triple>>();
     final ExecutorService threadPool = Executors.newFixedThreadPool(Main.numThreads);
+
     for(int k = 0; k < K; k++){
       Callable<Triple> sampler = new Callable<Triple>(){
         public Triple call() throws Exception {
           Triple triple = new Triple();
           double correct = 0.0;
+          // sample transition. 
           int t1 = 1;
           while(Math.random() * T > 1.0) t1++;
           int t2 = 0;
           while(Math.random() * T2 > 1.0) t2++;
+          // sample particle. 
           final Alignment a = new Alignment(ex.source);
           triple.gradients.add(a.simpleInit());
           triple.logWeights.add(Double.NEGATIVE_INFINITY);

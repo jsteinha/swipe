@@ -69,22 +69,33 @@ public class Util {
     else return x + Math.log(1 + Math.exp(y-x));
   }
 
-  public static int sample(double[] logprobs){
+  public static int sample(double[] logprobs, int len){
+    assert(len <= logprobs.length);
     double max = Double.NEGATIVE_INFINITY;
-    for(int i = 0; i < logprobs.length; i++){
+    for(int i = 0; i < len; i++){
       max = Math.max(max, logprobs[i]);
     }
     double Z = 0.0;
-    for(int i = 0; i < logprobs.length; i++){
+    for(int i = 0; i < len; i++){
       Z += Math.exp(logprobs[i] - max);
     }
     double logZ = Math.log(Z) + max;
     double u = Math.random(), v = 0.0;
-    for(int i = 0; i < logprobs.length; i++){
+    for(int i = 0; i < len; i++){
       v += Math.exp(logprobs[i] - logZ);
       if(v > u) return i;
     }
     throw new RuntimeException("this should never happen");
+  }
+
+  public static int sample(double[] logprobs){
+    sample(logprobs, logprobs.length)
+  }
+
+  public static int sampleGeometric(double logeps) {
+    int t = 0;
+    while(log(Math.random()) >= logeps) t++;
+    return t;
   }
 
   public static <T> T sample(Map<T, Double> logprobs){
