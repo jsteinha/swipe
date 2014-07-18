@@ -52,8 +52,6 @@ public class Main implements Runnable {
   public static int Tstar = 40;
   @Option(gloss="extent of computational regularization")
   public static float c = 1;
-  @Option(gloss="number of transitions to sample time (T, T2)")
-  public static int J = 10;
   
 
   //static HashMap<String, Double> params = new HashMap<String, Double>();

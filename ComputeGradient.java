@@ -127,7 +127,6 @@ public class ComputeGradient {
     final int T = Main.T, T2 = Main.T2, B = Main.B, K = train ? Main.K : 1, Tstar = Main.Tstar, c = Main.c;
     double exlen = ex.source.length();
     double lambda1 = params.get("lambda1"), lambda2 = params.get("lambda2");
-    double[] marginals = new double[Tstar];
 
     double correct = 0.0;
     ArrayList<Map<String, Double> > gradients = new ArrayList<Map<String, Double>>();
