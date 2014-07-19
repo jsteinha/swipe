@@ -84,7 +84,7 @@ public class ComputeGradient {
             triple.initial.add(false);
             if(t >= B){
               triple.gradientsStop.add(g);
-              triple.logWeights.add(-1.0 * a.editDistance(ex.target)+Math.log(prob)-t);
+              triple.logWeights.add(-1.0 * a.editDistance(ex.target)+Math.log(prob)-Main.c*max(0, t-T));
               triple.edits.add(a.editDistance(ex.target));
               if(a.collapse().equals(ex.target)) correct += 1.0;
               if(Math.random() < prob) { // stop.

@@ -31,6 +31,8 @@ parser.add_option("--numExamples", type="int", dest="num_examples")
 parser.add_option("--nlpsub",action="store_true",dest="nlpsub",default=False)
 parser.add_option("--dataset", type="string", dest="dataset",default="data/train2_small.dat")
 parser.add_option("--msPerLine", type="int", dest="msPerLine", default=0)
+parser.add_option("--c", type="float", dest="c", default=0)
+
 (options, args) = parser.parse_args()
 if not options.name:
   print "No name given, defaulting to SCRATCH"
@@ -112,6 +114,8 @@ if options.run:
       call_args.append("-Main.T2 %d" % options.T2)
     if options.dataset:
       call_args.append("-Main.dataset %s" % options.dataset)
+    call_args.append("-Main.c %f" % options.c)
+    
     print 'running command: %s'  % " ".join(call_args)
     run_cmd = lambda : call(shlex.split(" ".join(call_args)))
     #if options.num_threads == 1:
