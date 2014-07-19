@@ -145,6 +145,10 @@ public class Util {
     //}
   }
 
+  public static double sigmoid(double x) {
+    return 1/(1-Math.exp(-x));
+  }
+
   public static void logNormalize(double[] x){
     double lse = Double.NEGATIVE_INFINITY;
     for(int i = 0; i < x.length; i++){

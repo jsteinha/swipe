@@ -50,8 +50,6 @@ public class Main implements Runnable {
   public static int numThreads = 5;
   @Option(gloss="target number of transitions (used for computational regularization")
   public static int Tstar = 40;
-  @Option(gloss="extent of computational regularization")
-  public static double c = 0;  // default: no regularization.
   
 
   //static HashMap<String, Double> params = new HashMap<String, Double>();
@@ -155,8 +153,8 @@ public class Main implements Runnable {
     
     Alignment.copyFeatures("init-", "");
     Alignment.copyFeatures("init-", "last-");
-    Main.params.put("lambda", -5.0);
-
+    Main.params.put("lambda-dic", 0.0);
+    Main.params.put("lambda-time", 0.0);
 
     for(int q = 0; q < Q; q++){
       LogInfo.begin_track("Beginning iteration %d", q);
