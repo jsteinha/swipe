@@ -153,8 +153,8 @@ public class Main implements Runnable {
     
     Alignment.copyFeatures("init-", "");
     Alignment.copyFeatures("init-", "last-");
-    Main.params.put("lambda-dic", 0.0);
-    Main.params.put("lambda-time", 0.0);
+    Main.params.put("lambda-dic", 5.0);
+    Main.params.put("lambda-time", 5.0);
 
     for(int q = 0; q < Q; q++){
       LogInfo.begin_track("Beginning iteration %d", q);

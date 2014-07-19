@@ -49,6 +49,7 @@ public class ComputeGradient {
     final ExecutorService threadPool = Executors.newFixedThreadPool(Main.numThreads);
     if(B > T) 
       throw new Exception("B ("+B+") is not supposed to be bigger than T("+T+").");
+    LogInfo.logs("lambda-dic: %f, lambda-time: %f", Main.params.get("lambda-dic"), Main.params.get("lambda-time"));
     for(int k = 0; k < K; k++){
       Callable<Triple> sampler = new Callable<Triple>(){
         public Triple call() throws Exception {
@@ -57,6 +58,9 @@ public class ComputeGradient {
           double correct = 0.0;
           final Alignment a = new Alignment(ex.source);
           triple.gradients.add(a.simpleInit());
+          triple.gradientsStop.add(null);
+          triple.finalSample.add(a.collapse());
+          triple.edits.add(0);
           triple.logWeights.add(Double.NEGATIVE_INFINITY);
           triple.initial.add(true);
           for(int t = 0;; t++){
@@ -69,11 +73,13 @@ public class ComputeGradient {
                                             }));
             triple.finalSample.add(a.collapse());
             int feat_indic = Main.dictionary.get(a.collapse()) == null ? 0 : 1;
-            double feat_time = t/(double)ex.source.length();
+            double feat_time = 1/(double)ex.source.length();
             double prob = Util.sigmoid(lambda_dic*feat_indic+lambda_time*feat_time-Math.log(T-B-1));
             HashMap<String, Double> g = new HashMap<String, Double>();
-            g.put("lambda-dic", -prob*(1-prob)*feat_indic);
-            g.put("lambda-time", -prob*(1-prob)*feat_time);
+            g.put("lambda-dic-pos", (1-prob)*feat_indic);
+            g.put("lambda-dic-neg", -prob*feat_indic);
+            g.put("lambda-time-pos", (1-prob)*feat_time);
+            g.put("lambda-time-neg", -prob*feat_time);
             // compute the importance weights. 
             triple.initial.add(false);
             if(t >= B){
@@ -81,7 +87,6 @@ public class ComputeGradient {
               triple.logWeights.add(-1.0 * a.editDistance(ex.target)+Math.log(prob));
               triple.edits.add(a.editDistance(ex.target));
               if(a.collapse().equals(ex.target)) correct += 1.0;
-              Debug.p(prob, "prob");
               if(Math.random() < prob) { // stop.
                 triple.effT = t+1;
                 break;
@@ -123,8 +128,8 @@ public class ComputeGradient {
         edits += result.edits.get(i) / (allT * len);
       }
     }
-    LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f, lambda-dic: %f, lambda-time: %f, average T: %f", 
-                                        score, edits, correct, Main.params.get("lambda-dic"), Main.params.get("lambda-time"), allT/(double)K);
+    LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f, average T: %f", 
+                                        score, edits, correct, allT/(double)K);
     Main.score.add(score);
     Main.edits.add(edits);
     Main.correct.add(correct);
@@ -134,7 +139,12 @@ public class ComputeGradient {
     double cumulativeWeight = 0.0;
     for(int i = result.logWeights.size() - 1; i >= 0; i--){
       double weight = Math.exp(result.logWeights.get(i));
-      Util.update(answer, result.gradientsStop.get(i), cumulativeWeight-weight);
+      if(result.gradientsStop.get(i) != null) {
+        Util.update(answer, "lambda-dic", result.gradientsStop.get(i).get("lambda-dic-pos")*weight
+                                          +result.gradientsStop.get(i).get("lambda-dic-neg")*cumulativeWeight);
+        Util.update(answer, "lambda-time", result.gradientsStop.get(i).get("lambda-time-pos")*weight
+                                          +result.gradientsStop.get(i).get("lambda-time-neg")*cumulativeWeight);
+      }
       cumulativeWeight += weight;
       Util.update(answer, result.gradients.get(i), cumulativeWeight);
       if(result.initial.get(i)) cumulativeWeight = 0.0;
