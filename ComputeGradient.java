@@ -81,7 +81,8 @@ public class ComputeGradient {
               triple.logWeights.add(-1.0 * a.editDistance(ex.target)+Math.log(prob));
               triple.edits.add(a.editDistance(ex.target));
               if(a.collapse().equals(ex.target)) correct += 1.0;
-              if(Math.random() < prob) { // not stop.
+              Debug.p(prob, "prob");
+              if(Math.random() < prob) { // stop.
                 triple.effT = t+1;
                 break;
               }
