@@ -31,7 +31,7 @@ parser.add_option("--verbosity", type="int", dest="verbosity", default=0)
 parser.add_option("--numExamples", type="int", dest="num_examples")
 parser.add_option("--nlpsub",action="store_true",dest="nlpsub",default=False)
 parser.add_option("--dataset", type="string", dest="dataset",default="data/train2_small.dat")
-
+parser.add_option("--msPerLine", type="int", dest="msPerLine", default=0)
 (options, args) = parser.parse_args()
 if not options.name:
   print "No name given, defaulting to SCRATCH"
@@ -64,7 +64,7 @@ if options.compile:
 
 if options.run:
   call_args = ["java", "-Xmx%dg" % options.memory, "-cp .:%s:classes/%s" % (include, name), 
-               "Main", "-execPoolDir %s/%s" % (prefix, name)]
+               "Main", "-execPoolDir %s/%s" % (prefix, name), "-msPerLine %d" % options.msPerLine]
   if options.nlpsub:
     time.sleep(0.5)
     call_args = ["nlpsub", "-v"] + call_args
@@ -79,8 +79,6 @@ if options.run:
     if not options.T:
       parser.error("must specify number of MCMC steps")
     call_args.append("-Main.T %d" % options.T)
-    if not options.B:
-      parser.error("must specify MCMC burn-in")
     call_args.append("-Main.B %d" % options.B)
     if not options.Q:
       parser.error("must specify number of training iterations")

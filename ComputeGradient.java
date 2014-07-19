@@ -84,19 +84,18 @@ public class ComputeGradient {
                                             }));
             if(t >= B){
               triple.gradientsTime.add((t-B)/(double)ex.source.length());
-              double pweight = -2*c*Math.max(0, t-T)-Math.log(1-Math.exp(ratio))
-                                          +ratio*(T-B)+Math.log(1-Math.exp(ratio-c));
-              triple.logWeightsTime.add(pweight);
-              triple.logWeights.add(-1.0 * a.editDistance(ex.target)+pweight);
+              // triple.logWeightsTime.add(-2 * c * Math.max(0, t-T));
+              triple.logWeightsTime.add(0.0);
+              triple.logWeights.add(-1.0 * a.editDistance(ex.target)-2 * c * Math.max(0, t-T));
               if(a.collapse().equals(ex.target)) correct += 1.0/(K*(T1+1));
             } else {
               triple.gradientsTime.add(0.0);
               triple.logWeights.add(Double.NEGATIVE_INFINITY);
               triple.logWeightsTime.add(Double.NEGATIVE_INFINITY);
             }
+            triple.finalSample.add(a.collapse());
             triple.initial.add(false);
           }
-          // LogInfo.logs("target: %s, final sample: %s", ex.target, a.collapse());
           triple.correct = correct;
           return triple;
         }
@@ -115,6 +114,11 @@ public class ComputeGradient {
     // if(train){
       for(Future<Triple> sampler : samplers){
         Triple ret = sampler.get();
+        LogInfo.begin_track("sampler "+sampler.toString());
+        for(String sample : ret.finalSample) {
+          LogInfo.logs("target: %s, final sample: %s", ex.target, sample);
+        }
+        LogInfo.end_track();
         allT += ret.effT;
         ret.appendTo(result);
         correct += ret.correct;
@@ -131,7 +135,7 @@ public class ComputeGradient {
         edits += -(result.logWeights.get(i)-result.logWeightsTime.get(i)) / (allT * len);
       }
     }
-    // LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f, average T: %f", score, edits, correct, B+allT/(double)K);
+    LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f, lambda: %f, average T: %f", score, edits, correct, Main.params.get("lambda"), B+allT/(double)K);
     Main.score.add(score);
     Main.edits.add(edits);
     Main.correct.add(correct);
@@ -339,6 +343,7 @@ class Triple {
   ArrayList<Double> logWeights = new ArrayList<Double>();
   ArrayList<Double> logWeightsTime = new ArrayList<Double>();
   ArrayList<Boolean> initial = new ArrayList<Boolean>();
+  ArrayList<String> finalSample = new ArrayList<String>();
   double correct = 0.0;
   int effT = 0;
   public Triple() {}

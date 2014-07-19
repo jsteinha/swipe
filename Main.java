@@ -52,7 +52,7 @@ public class Main implements Runnable {
   public static int Tstar = 40;
   @Option(gloss="extent of computational regularization")
   public static double c = 0;  // default: no regularization.
-   
+  
 
   //static HashMap<String, Double> params = new HashMap<String, Double>();
   static HashMap<String, Double> G1 = new HashMap<String, Double>(),
@@ -145,10 +145,9 @@ public class Main implements Runnable {
       LogInfo.begin_track("Beginning pre-iteration %d", q);
       for(int i = 0; i < numTrain; i++){
         Example ex = examples.get(i);
-        if(i%10 == 0) System.out.println("# "+i);
-        // LogInfo.begin_track("Example: %s", ex);
+        LogInfo.begin_track("#%d Example: %s", q*numTrain+i, ex);
         updateParams(ComputeGradient.gradientUU(ex));
-        // LogInfo.end_track();
+        LogInfo.end_track();
       }
       dumpStats("init");
       LogInfo.end_track();
@@ -162,12 +161,12 @@ public class Main implements Runnable {
     for(int q = 0; q < Q; q++){
       LogInfo.begin_track("Beginning iteration %d", q);
       for(int i = 0; i < numTrain; i++){
-        if(i%1000 == 0) {
-          System.out.println("# "+i+", T = "+Main.T+", T2 = "+Main.T2);
-          System.out.println("lambda = "+Main.params.get("lambda")+" , effT = "+Main.records.get("T"));
-        }
+        // if(i%1000 == 0) {
+        //   System.out.println("# "+i+", T = "+Main.T+", T2 = "+Main.T2);
+        //   System.out.println("lambda = "+Main.params.get("lambda")+" , effT = "+Main.records.get("T"));
+        // }
         Example ex = examples.get(i);
-        // LogInfo.logs("Example: %s", ex);
+        LogInfo.logs("#%d Example: %s", q*numTrain+i, ex);
         if(inference.equals("UA")){
           updateParams(ComputeGradient.gradientUA(ex));
         }else if(inference.equals("UAB")) {
@@ -209,7 +208,7 @@ public class Main implements Runnable {
         Util.printMap(params);
         LogInfo.end_track();
       }
-      // LogInfo.end_track();
+      LogInfo.end_track();
     }
   }
 
