@@ -37,10 +37,96 @@ public class ComputeGradient {
     return gradient;
   }
 
-  public static Map<String, Double> gradientUA(Example ex) throws Exception {
+   public static Map<String, Double> gradientUA(Example ex) throws Exception {
     return gradientUA(ex, true);
   }
   public static Map<String, Double> gradientUA(final Example ex, boolean train) throws Exception {
+    final int T = Main.T, B = Main.B, K = train ? Main.K : 1;
+    double correct = 0.0;
+    double allT = 0.0;
+    Triple result = new Triple();
+    ArrayList<Future<Triple>> samplers = new ArrayList<Future<Triple>>();
+    final ExecutorService threadPool = Executors.newFixedThreadPool(Main.numThreads);
+    for(int k = 0; k < K; k++){
+      Callable<Triple> sampler = new Callable<Triple>(){
+        public Triple call() throws Exception {
+          Triple triple = new Triple();
+          double correct = 0.0;
+          int T1 = B;
+          while(Math.random() * (T-B) > 1.0) T1++;
+          Alignment a = new Alignment(ex.source);
+          triple.gradients.add(a.simpleInit());
+          triple.logWeights.add(Double.NEGATIVE_INFINITY);
+          triple.initial.add(true);
+          for(int t = 0; t < T1; t++){
+            triple.gradients.add(a.propose((int)(Math.random() * a.len), 
+                                            new Alignment.FeatureExtract() {
+                                              public HashMap<String, Double> run() {
+                                                return a.extractFeatures();
+                                              }
+                                            }));
+            if(t >= B){
+              triple.logWeights.add(-1.0 * a.editDistance(ex.target));
+              if(a.collapse().equals(ex.target)) correct += 1.0/(K*(T1-B));
+            } else {
+              triple.logWeights.add(Double.NEGATIVE_INFINITY);
+            }
+            triple.initial.add(false);
+          }
+          LogInfo.logs("final sample: %s", a.collapse());
+          triple.correct = correct;
+          triple.effT = T1;
+          return triple;
+        }
+      };
+      if(train) {
+        samplers.add(threadPool.submit(sampler));
+      } else {
+        Triple ret = sampler.call();
+        ret.appendTo(result);
+        correct += ret.correct;
+        allT += ret.effT;
+      }
+    }
+    threadPool.shutdown();
+    threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+    if(train){
+      for(Future<Triple> sampler : samplers){
+        Triple ret = sampler.get();
+        ret.appendTo(result);
+        correct += ret.correct;
+        allT += ret.effT;
+      }
+    }
+    double score = 0.0, edits = 0.0;
+    int len = new Alignment(ex.source).len;
+    for(int i = 0; i < result.logWeights.size(); i++){
+      score += Math.exp(result.logWeights.get(i)) / (K*(T-B));
+      if(result.logWeights.get(i) > Double.NEGATIVE_INFINITY){
+        edits += -result.logWeights.get(i) / (K * (T-B) * len);
+      }
+    }
+    LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f", score, edits, correct);
+    Main.score.add(score);
+    Main.edits.add(edits);
+    Main.correct.add(correct);
+    Main.infertime.add(allT/(double)K);
+    if(!train) return null;
+    Util.logNormalize(result.logWeights);
+    Map<String, Double> answer = new HashMap<String, Double>();
+    double cumulativeWeight = 0.0;
+    for(int i = result.logWeights.size() - 1; i >= 0; i--){
+      cumulativeWeight += Math.exp(result.logWeights.get(i));
+      Util.update(answer, result.gradients.get(i), cumulativeWeight);
+      if(result.initial.get(i)) cumulativeWeight = 0.0;
+    }
+    return answer;
+  }
+
+  public static Map<String, Double> gradientUAa(Example ex) throws Exception {
+    return gradientUA(ex, true);
+  }
+  public static Map<String, Double> gradientUAa(final Example ex, boolean train) throws Exception {
     final int T = Main.T, B = Main.B, K = train ? Main.K : 1;
     final HashMap<String, Double> params = Main.params;
     double correct = 0.0;
@@ -73,7 +159,7 @@ public class ComputeGradient {
                                             }));
             triple.finalSample.add(a.collapse());
             int feat_indic = Main.dictionary.get(a.collapse()) == null ? 0 : 1;
-            double feat_time = 1/(double)ex.source.length();
+            double feat_time = (double)ex.source.length();
             double prob = Util.sigmoid(lambda_dic*feat_indic+lambda_time*feat_time-Math.log(T-B-1));
             HashMap<String, Double> g = new HashMap<String, Double>();
             g.put("lambda-dic-pos", (1-prob)*feat_indic);
@@ -133,6 +219,7 @@ public class ComputeGradient {
     Main.score.add(score);
     Main.edits.add(edits);
     Main.correct.add(correct);
+    Main.infertime.add(allT/(double)K);
     if(!train) return null;
     Util.logNormalize(result.logWeights);
     Map<String, Double> answer = new HashMap<String, Double>();
