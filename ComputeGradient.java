@@ -124,7 +124,7 @@ public class ComputeGradient {
   }
 
   public static Map<String, Double> gradientUAa(Example ex) throws Exception {
-    return gradientUA(ex, true);
+    return gradientUAa(ex, true);
   }
   public static Map<String, Double> gradientUAa(final Example ex, boolean train) throws Exception {
     final int T = Main.T, B = Main.B, K = train ? Main.K : 1;
@@ -160,7 +160,7 @@ public class ComputeGradient {
             triple.finalSample.add(a.collapse());
             int feat_indic = Main.dictionary.get(a.collapse()) == null ? 0 : 1;
             double feat_time = (double)ex.source.length();
-            double prob = Util.sigmoid(lambda_dic*feat_indic+lambda_time*feat_time-Math.log(T-B-1));
+            double prob = Util.sigmoid(lambda_dic*feat_indic+lambda_time*feat_time);
             HashMap<String, Double> g = new HashMap<String, Double>();
             g.put("lambda-dic-pos", (1-prob)*feat_indic);
             g.put("lambda-dic-neg", -prob*feat_indic);
