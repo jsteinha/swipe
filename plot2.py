@@ -23,9 +23,13 @@ for n in range(num_series-num_plots, num_series):
   for line in f:
     nums.append(float(line.rstrip(',\n')))
   times = []
-  f = open('%s/testtime-%d' % (name, n))
-  for line in f:
-    times.append(float(line.rstrip(',\n')))
+  try:
+    f = open('%s/testtime-%d' % (name, n))
+    for line in f:
+      times.append(float(line.rstrip(',\n')))
+  except:
+    print 'exception'
+    pass
   f = open('%s/record-%d' % (name, n))
   metadata = []
   for k, line in enumerate(f):

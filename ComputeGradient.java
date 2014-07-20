@@ -54,7 +54,7 @@ public class ComputeGradient {
           double correct = 0.0;
           int T1 = B;
           while(Math.random() * (T-B) > 1.0) T1++;
-          Alignment a = new Alignment(ex.source);
+          final Alignment a = new Alignment(ex.source);
           triple.gradients.add(a.simpleInit());
           triple.logWeights.add(Double.NEGATIVE_INFINITY);
           triple.initial.add(true);
