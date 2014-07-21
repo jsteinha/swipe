@@ -62,7 +62,7 @@ public class ComputeGradient {
             triple.gradients.add(a.propose((int)(Math.random() * a.len), 
                                             new Alignment.FeatureExtract() {
                                               public HashMap<String, Double> run() {
-                                                return a.extractFeatures();
+                                                return a.extractFeatures(true, "");
                                               }
                                             }));
             if(t >= B){
@@ -154,7 +154,7 @@ public class ComputeGradient {
             triple.gradients.add(a.propose((int)(Math.random() * a.len), 
                                             new Alignment.FeatureExtract() {
                                               public HashMap<String, Double> run() {
-                                                return a.extractFeatures();
+                                                return a.extractFeatures(true, "");
                                               }
                                             }));
             triple.finalSample.add(a.collapse());
