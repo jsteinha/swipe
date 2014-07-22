@@ -57,12 +57,12 @@ public class Main implements Runnable {
   //static HashMap<String, Double> params = new HashMap<String, Double>();
   static HashMap<String, Double> G1 = new HashMap<String, Double>(),
                                  G2 = new HashMap<String, Double>(),
-                                 params = new HashMap<String, Double>(),
-                                 records = new HashMap<String, Double>();
+                                 params = new HashMap<String, Double>();
   static HashMap<String, Double> dictionary, partialDict;
   static StatFig score = new StatFig(),
                  edits = new StatFig(),
-                 correct = new StatFig();
+                 correct = new StatFig(), 
+                 infertime = new StatFig();
 
   void adagrad(Map<String, Double> gradient){
     for(Map.Entry<String, Double> entry: gradient.entrySet()){
@@ -111,11 +111,13 @@ public class Main implements Runnable {
     Record.add(String.format("%s score", name), score);
     Record.add(String.format("%s edits", name), edits);
     Record.add(String.format("%s correct", name), correct);
+    Record.add(String.format("%s time", name), infertime);
     Record.flush();
     score = new StatFig();
     edits = new StatFig();
     correct = new StatFig();
   }
+
 
   public void run() {
     try {
@@ -161,14 +163,12 @@ public class Main implements Runnable {
     for(int q = 0; q < Q; q++){
       LogInfo.begin_track("Beginning iteration %d", q);
       for(int i = 0; i < numTrain; i++){
-        // if(i%1000 == 0) {
-        //   System.out.println("# "+i+", T = "+Main.T+", T2 = "+Main.T2);
-        //   System.out.println("lambda = "+Main.params.get("lambda")+" , effT = "+Main.records.get("T"));
-        // }
         Example ex = examples.get(i);
         LogInfo.logs("#%d Example: %s", q*numTrain+i, ex);
         if(inference.equals("UA")){
           updateParams(ComputeGradient.gradientUA(ex));
+        }else if(inference.equals("UAa")) {
+          updateParams(ComputeGradient.gradientUAa(ex));
         }else if(inference.equals("UAB")) {
           updateParams(ComputeGradient.gradientUAB(ex));
         }else if(inference.equals("AA")){
@@ -187,6 +187,8 @@ public class Main implements Runnable {
                 try {
                   if(inference.equals("UA"))
                     ComputeGradient.gradientUA(ex2, false);
+                  if(inference.equals("UAa"))
+                    ComputeGradient.gradientUAa(ex2, false);
                   else if(inference.equals("UAB"))
                     ComputeGradient.gradientUAB(ex2, false);
                   else if(inference.equals("AA"))
