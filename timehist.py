@@ -15,6 +15,6 @@ for line in lines:
     if pos != -1:
       T = float(line[pos+len(target):])
       listT.append(T)
-print listT
+[sys.stdout.write(str(T)+"\n") for T in listT]
 
 
