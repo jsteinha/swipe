@@ -63,6 +63,7 @@ public class Main implements Runnable {
                  edits = new StatFig(),
                  correct = new StatFig(), 
                  infertime = new StatFig();
+  static boolean letsOutputSample = false;
 
   void adagrad(Map<String, Double> gradient){
     for(Map.Entry<String, Double> entry: gradient.entrySet()){
@@ -150,9 +151,9 @@ public class Main implements Runnable {
       LogInfo.begin_track("Beginning pre-iteration %d", q);
       for(int i = 0; i < numTrain; i++){
         Example ex = examples.get(i);
-        LogInfo.begin_track("#%d Example: %s", q*numTrain+i, ex);
+        // LogInfo.begin_track("#%d Example: %s", q*numTrain+i, ex);
         updateParams(ComputeGradient.gradientUU(ex));
-        LogInfo.end_track();
+        // LogInfo.end_track();
       }
       dumpStats("init");
       LogInfo.end_track();
@@ -166,8 +167,9 @@ public class Main implements Runnable {
     for(int q = 0; q < Q; q++){
       LogInfo.begin_track("Beginning iteration %d", q);
       for(int i = 0; i < numTrain; i++){
+        if(i < 10) letsOutputSample = true;
+        else letsOutputSample = false;
         Example ex = examples.get(i);
-        LogInfo.logs("#%d Example: %s", q*numTrain+i, ex);
         if(inference.equals("UA")){
           updateParams(ComputeGradient.gradientUA(ex));
         }else if(inference.equals("UAa")) {

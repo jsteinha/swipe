@@ -9,7 +9,7 @@ public class Reader {
       try {
         String target = s.next(), source = s.next();
         Example ex = new Example(source, target);
-        LogInfo.logs(ex);
+        // LogInfo.logs(ex);
         examples.add(ex);
       } catch(Exception e){}
     }

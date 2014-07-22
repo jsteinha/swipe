@@ -79,20 +79,21 @@ public class ComputeGradient {
           return triple;
         }
       };
-      if(train) {
-        samplers.add(threadPool.submit(sampler));
-      } else {
-        Triple ret = sampler.call();
-        ret.appendTo(result);
-        correct += ret.correct;
-        allT += ret.effT;
-      }
+      samplers.add(threadPool.submit(sampler));
     }
     threadPool.shutdown();
     threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
     if(train){
       for(Future<Triple> sampler : samplers){
         Triple ret = sampler.get();
+        if(Main.letsOutputSample) {
+          LogInfo.logs("Example: %s", ex);
+          LogInfo.begin_track("sampler "+sampler.toString());
+          for(String sample : ret.finalSample) {
+            LogInfo.logs("target: %s, final sample: %s", ex.target, sample);
+          }
+          LogInfo.end_track();
+        }
         ret.appendTo(result);
         correct += ret.correct;
         allT += ret.effT;
@@ -106,12 +107,14 @@ public class ComputeGradient {
         edits += -result.logWeights.get(i) / (K * (T-B) * len);
       }
     }
-    LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f", score, edits, correct);
     Main.score.add(score);
     Main.edits.add(edits);
     Main.correct.add(correct);
     Main.infertime.add(allT/(double)K);
-    if(!train) return null;
+    if(!train) {
+      LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f", score, edits, correct);
+      return null;
+    }
     Util.logNormalize(result.logWeights);
     Map<String, Double> answer = new HashMap<String, Double>();
     double cumulativeWeight = 0.0;
@@ -192,11 +195,14 @@ public class ComputeGradient {
     int allT = 0;
     for(Future<Triple> sampler : samplers){
       Triple ret = sampler.get();
-      LogInfo.begin_track("sampler "+sampler.toString());
-      for(String sample : ret.finalSample) {
-        LogInfo.logs("target: %s, final sample: %s", ex.target, sample);
+      if(Main.letsOutputSample) {
+        LogInfo.logs("Example: %s", ex);
+        LogInfo.begin_track("sampler "+sampler.toString());
+        for(String sample : ret.finalSample) {
+          LogInfo.logs("target: %s, final sample: %s", ex.target, sample);
+        }
+        LogInfo.end_track();
       }
-      LogInfo.end_track();
       allT += ret.effT;
       ret.appendTo(result);
       correct += ret.correct;
@@ -212,13 +218,15 @@ public class ComputeGradient {
         edits += -(result.logWeights.get(i)-result.logWeightsTime.get(i)) / (allT * len);
       }
     }
-    LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f, lambda: %f, average T: %f", score, edits, correct, Main.params.get("lambda"), B+allT/(double)K);
     Main.score.add(score);
     Main.edits.add(edits);
     Main.correct.add(correct);
     Main.infertime.add(allT/(double)K);
 
-    if(!train) return null;
+    if(!train) {
+      LogInfo.logs("score: %f, edit fraction: %f, correct fraction: %f, lambda: %f, average T: %f", score, edits, correct, Main.params.get("lambda"), B+allT/(double)K);
+      return null;
+    }
     Util.logNormalize(result.logWeights);
     Util.logNormalize(result.logWeightsTime);
     Map<String, Double> answer = new HashMap<String, Double>();
