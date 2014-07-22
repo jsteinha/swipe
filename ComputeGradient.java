@@ -170,7 +170,6 @@ public class ComputeGradient {
                                             }));
             if(t >= B){
               triple.gradientsTime.add((t-B)/(double)ex.source.length());
-              // triple.logWeightsTime.add(-2 * c * Math.max(0, t-T));
               triple.logWeightsTime.add(0.0);
               triple.logWeights.add(-1.0 * a.editDistance(ex.target)-2 * c * Math.max(0, t-T));
               if(a.collapse().equals(ex.target)) correct += 1.0/(K*(T1+1));
