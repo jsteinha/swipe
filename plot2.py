@@ -22,6 +22,14 @@ for n in range(num_series-num_plots, num_series):
   nums = []
   for line in f:
     nums.append(float(line.rstrip(',\n')))
+  times = []
+  try:
+    f = open('%s/testtime-%d' % (name, n))
+    for line in f:
+      times.append(float(line.rstrip(',\n')))
+  except:
+    print 'exception'
+    pass
   f = open('%s/record-%d' % (name, n))
   metadata = []
   for k, line in enumerate(f):
@@ -35,10 +43,24 @@ for n in range(num_series-num_plots, num_series):
       test_frequency = int(line.split()[3])
   print metadata
   if len(nums) > 0:
+    plt.figure(1)
     plt.plot(np.array(range(len(nums)))*float(test_frequency)/float(train_size), nums, '%s%s' % (colors[ni % len(colors)], style[ni / len(colors)]), label=' '.join(metadata))
-# plt.title(name)
+  if len(times) > 0:
+    plt.figure(2)
+    plt.plot(np.array(range(len(times)))*float(test_frequency)/float(train_size), times, '%s%s' % (colors[ni % len(colors)], style[ni / len(colors)]), label=' '.join(metadata))
+plt.figure(1)
+plt.title(name+" (accuracy) ")
 plt.xlabel('Effective passes through training data')
 plt.ylabel('Test accuracy')
 plt.axis()
 plt.legend(loc=4,prop={'size':9})
 plt.savefig('plot.pdf')
+
+plt.figure(2)
+plt.title(name+" (time) ")
+plt.xlabel('Effective passes through training data')
+plt.ylabel('# Test transitions')
+plt.axis()
+plt.legend(loc=4,prop={'size':9})
+plt.savefig('plottime.pdf')
+
