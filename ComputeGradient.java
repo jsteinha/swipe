@@ -152,7 +152,7 @@ public class ComputeGradient {
           int T1 = 0;
           if(lambda >= 0)
             throw new Exception("lambda should not be >= 0.");
-          double ratio = lambda/(double)ex.source.length();
+          double ratio = lambda/(double)ex.source.length()+Math.log(1-1.0/(double)(T-B));
           while(Math.log(Math.random()) <= ratio) T1++;
           final Alignment a = new Alignment(ex.source);
           triple.gradients.add(a.simpleInit());
@@ -160,7 +160,7 @@ public class ComputeGradient {
           triple.logWeightsTime.add(Double.NEGATIVE_INFINITY);
           triple.logWeights.add(Double.NEGATIVE_INFINITY);
           triple.initial.add(true);
-          triple.effT = T1+1;
+          triple.effT = T1+B+1;
           for(int t = 0; t <= B+T1; t++){
             triple.gradients.add(a.propose((int)(Math.random() * a.len), 
                                             new Alignment.FeatureExtract() {
@@ -171,7 +171,7 @@ public class ComputeGradient {
             if(t >= B){
               triple.gradientsTime.add((t-B)/(double)ex.source.length());
               triple.logWeightsTime.add(0.0);
-              triple.logWeights.add(-1.0 * a.editDistance(ex.target)-2 * c * Math.max(0, t-T));
+              triple.logWeights.add(-1.0 * a.editDistance(ex.target)-c*Math.max(0, t-T));
               if(a.collapse().equals(ex.target)) correct += 1.0/(K*(T1+1));
             } else {
               triple.gradientsTime.add(0.0);

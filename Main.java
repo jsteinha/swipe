@@ -80,7 +80,10 @@ public class Main implements Runnable {
       double value = entry.getValue();
       //Util.update(G1, key, value);
       Util.update(G2, key, value * value);
-      Util.update(params, key, eta * value / Math.sqrt(1e-4 + G2.get(key)));
+      if(key == "lambda") 
+        Util.update(params, key, 0.1 * value / Math.sqrt(1e-4 + G2.get(key)));
+      else
+        Util.update(params, key, eta * value / Math.sqrt(1e-4 + G2.get(key)));
     }
   }
 
@@ -157,7 +160,7 @@ public class Main implements Runnable {
     
     Alignment.copyFeatures("init-", "");
     Alignment.copyFeatures("init-", "last-");
-    Main.params.put("lambda", -5.0);
+    Main.params.put("lambda", 0.0);
 
 
     for(int q = 0; q < Q; q++){
