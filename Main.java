@@ -22,6 +22,8 @@ public class Main implements Runnable {
   public static int K;
   @Option(gloss="step size", required=true)
   public static double eta;
+  @Option(gloss="step size for time", required=true)
+  public static double etaT;
   @Option(gloss="inference", required=true)
   public static String inference;
   @Option(gloss="learning", required=true)
@@ -81,7 +83,10 @@ public class Main implements Runnable {
       double value = entry.getValue();
       //Util.update(G1, key, value);
       Util.update(G2, key, value * value);
-      Util.update(params, key, eta * value / Math.sqrt(1e-4 + G2.get(key)));
+      if(key == "lambda") 
+        Util.update(params, key, etaT * value / Math.sqrt(1e-4 + G2.get(key)));
+      else
+        Util.update(params, key, eta * value / Math.sqrt(1e-4 + G2.get(key)));
     }
   }
 

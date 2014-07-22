@@ -13,6 +13,7 @@ parser.add_option("--java-help", action="store_true", dest="java_help", default=
 parser.add_option("-v", "--verbose", action="store_true", dest="verbose", default=False)
 parser.add_option("-g", type="int", dest="memory", default=12)
 parser.add_option("--eta", type="float", dest="eta", default=0.05)
+parser.add_option("--etaT", type="float", dest="etaT", default=0.1)
 parser.add_option("--T", type="int", dest="T")
 parser.add_option("--T2", type="int", dest="T2")
 parser.add_option("--B", type="int", dest="B")
@@ -75,6 +76,7 @@ if options.run:
       call_args.append("-log.stdout false")
     call_args.append("-Main.experimentName %s" % name)
     call_args.append("-Main.eta %f" % options.eta)
+    call_args.append("-Main.etaT %f" % options.etaT)
     if not options.T:
       parser.error("must specify number of MCMC steps")
     call_args.append("-Main.T %d" % options.T)

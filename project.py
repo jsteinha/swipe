@@ -23,9 +23,9 @@ def __run__(name):
                                                   %(env[name]['machine'], env[name]['str'], env[name]['str'], env[name]['config'], name))
   
 
-def __kill__(name):
+def __kill__(item):
   cmd("ssh -t tianlins@jacob.stanford.edu \"ssh -t %s \'cd scr/swipe && screen -S %s -p 0 -X stuff \\\" \03 exit \015 \\\"  \' \""\
-                                                  %(env[name]['machine'], env[name]['str']))
+                                                  %(item['machine'], item['str']))
 
 def __fetch__(name):
   cmd("./fetch.sh %s"%name)
@@ -59,7 +59,12 @@ def add(name, machine, branch, config):
   env[name]['str'] = name+'.'+str(env[name]['stamp'])
 
 def kill(name):
-  __kill__(name)
+  if isinstance(env[name], list):
+    for item in env[name]:
+      __kill__(item)
+  else:
+    __kill__(env[name])
+  print 'name = ', name
   env.pop(name)
 
 def save():
