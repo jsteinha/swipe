@@ -81,10 +81,7 @@ public class Main implements Runnable {
       double value = entry.getValue();
       //Util.update(G1, key, value);
       Util.update(G2, key, value * value);
-      if(key == "lambda") 
-        Util.update(params, key, 0.1 * value / Math.sqrt(1e-4 + G2.get(key)));
-      else
-        Util.update(params, key, eta * value / Math.sqrt(1e-4 + G2.get(key)));
+      Util.update(params, key, eta * value / Math.sqrt(1e-4 + G2.get(key)));
     }
   }
 

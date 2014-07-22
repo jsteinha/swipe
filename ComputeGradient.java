@@ -73,7 +73,6 @@ public class ComputeGradient {
             }
             triple.initial.add(false);
           }
-          LogInfo.logs("final sample: %s", a.collapse());
           triple.correct = correct;
           triple.effT = T1;
           return triple;
@@ -83,21 +82,19 @@ public class ComputeGradient {
     }
     threadPool.shutdown();
     threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-    if(train){
-      for(Future<Triple> sampler : samplers){
-        Triple ret = sampler.get();
-        if(Main.letsOutputSample) {
-          LogInfo.logs("Example: %s", ex);
-          LogInfo.begin_track("sampler "+sampler.toString());
-          for(String sample : ret.finalSample) {
-            LogInfo.logs("target: %s, final sample: %s", ex.target, sample);
-          }
-          LogInfo.end_track();
+    for(Future<Triple> sampler : samplers){
+      Triple ret = sampler.get();
+      if(Main.letsOutputSample) {
+        LogInfo.logs("Example: %s", ex);
+        LogInfo.begin_track("sampler "+sampler.toString());
+        for(String sample : ret.finalSample) {
+          LogInfo.logs("target: %s, final sample: %s", ex.target, sample);
         }
-        ret.appendTo(result);
-        correct += ret.correct;
-        allT += ret.effT;
+        LogInfo.end_track();
       }
+      ret.appendTo(result);
+      correct += ret.correct;
+      allT += ret.effT;
     }
     double score = 0.0, edits = 0.0;
     int len = new Alignment(ex.source).len;
