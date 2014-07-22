@@ -47,7 +47,7 @@ for n in range(num_series-num_plots, num_series):
     plt.plot(np.array(range(len(nums)))*float(test_frequency)/float(train_size), nums, '%s%s' % (colors[ni % len(colors)], style[ni / len(colors)]), label=' '.join(metadata))
   if len(times) > 0:
     plt.figure(2)
-    plt.plot(np.array(range(len(nums)))*float(test_frequency)/float(train_size), times, '%s%s' % (colors[ni % len(colors)], style[ni / len(colors)]), label=' '.join(metadata))
+    plt.plot(np.array(range(len(times)))*float(test_frequency)/float(train_size), times, '%s%s' % (colors[ni % len(colors)], style[ni / len(colors)]), label=' '.join(metadata))
 plt.figure(1)
 plt.title(name+" (accuracy) ")
 plt.xlabel('Effective passes through training data')
