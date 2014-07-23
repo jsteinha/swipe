@@ -56,7 +56,7 @@ if len(nums) > 0:
   plt.ylabel('Test accuracy')
   plt.axis()
   plt.legend(loc=4,prop={'size':9})
-  plt.savefig('plot.pdf')
+  plt.savefig('plot_%s.pdf' % name)
 
 if len(times) > 0:
   plt.figure(2)
@@ -65,5 +65,5 @@ if len(times) > 0:
   plt.ylabel('# Test transitions')
   plt.axis()
   plt.legend(loc=4,prop={'size':9})
-  plt.savefig('plottime.pdf')
+  plt.savefig('plottime_%s.pdf' % name)
 

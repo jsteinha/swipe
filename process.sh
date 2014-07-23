@@ -14,5 +14,5 @@ if [ ! -z "$2" ]
 fi
 echo $LAST
 python plot2.py $1 $NUM $LAST
-open plot.pdf
-open plottime.pdf
+open plot_$1.pdf
+open plottime_$1.pdf
