@@ -9,23 +9,23 @@ from IPython.core import display
 env = dict()
 cmd = os.system
 
-def __git_update__(name):
+def __git_update__(machine, branch):
   cmd("ssh -t tianlins@jacob.stanford.edu \"ssh %s \'cd scr/swipe && git pull --all && git checkout %s \' \""\
-                                                  %(env[name]['machine'], env[name]['branch']))
+                                                  %(machine, branch))
 
-def __compile__(name):
+def __compile__(machine, name):
   cmd("ssh -t tianlins@jacob.stanford.edu \"ssh %s \'cd scr/swipe && python run_nlp.py --compile --name %s\' \""\
-                                                  %(env[name]['machine'], name))
+                                                  %(machine, name))
 
-def __run__(name):
-  print env[name]['str']
+def __run__(machine, name, string, config):
+  print string
   cmd("ssh -t tianlins@jacob.stanford.edu \"ssh -t %s \'cd scr/swipe && screen -dmS %s && screen -S %s -p 0 -X stuff \\\"python run_nlp.py --run %s --name %s \015 \\\" \' \""\
-                                                  %(env[name]['machine'], env[name]['str'], env[name]['str'], env[name]['config'], name))
+                                                  %(machine, string, string, config, name))
   
 
-def __kill__(name):
+def __kill__(item):
   cmd("ssh -t tianlins@jacob.stanford.edu \"ssh -t %s \'cd scr/swipe && screen -S %s -p 0 -X stuff \\\" \03 exit \015 \\\"  \' \""\
-                                                  %(env[name]['machine'], env[name]['str']))
+                                                  %(item['machine'], item['str']))
 
 def __fetch__(name):
   cmd("./fetch.sh %s"%name)
@@ -39,27 +39,59 @@ def fetch_all():
 
 def process_all():
   for key in env.keys():
+    try:
+      os.remove('plot_%s.pdf' % key)
+      os.remove('plottime_%s.pdf' % key)
+    except:
+      pass
     __process__(key)
-    print '[%s on %s]'%(key, env[key]['machine']), env[key]['config']
-    img = WImage(filename='plot.pdf')
-    display.display(img)
+    if isinstance(env[key], list):
+      for item in env[key]:
+        print '[%s on %s]'%(key, item['machine']), item['config']
+    else:
+      print '[%s on %s]'%(key, env[key]['machine']), env[key]['config']
+    if os.path.exists('plot_%s.pdf' % key):
+      img = WImage(filename='plot_%s.pdf' % key)
+      display.display(img)
+    else:
+      print '[NO IMAGE]'
+    if os.path.exists('plottime_%s.pdf' % key):
+      img = WImage(filename='plottime_%s.pdf' % key)
+      display.display(img)
+    else:
+      print '[NO IMAGE]'
 
 
 def run(name, machine, branch, config):
-  add(name, machine, branch, config)
-  __git_update__(name)
-  __compile__(name)
-  __run__(name)
+  string = add(name, machine, branch, config)
+  __git_update__(machine, branch)
+  __compile__(machine, name)
+  __run__(machine, name, string, config)
 
 def __new_timestamp__():
-  return max([0]+[item['stamp'] for item in env.values()])+1
+  max_stamp = 0
+  for item in env.values():
+    if isinstance(item, list):
+      for li in item:
+        max_stamp = max(max_stamp, li['stamp'])
+    else:
+      max_stamp = max(max_stamp, item['stamp'])
+  return max_stamp+1
 
 def add(name, machine, branch, config):
-  env[name] = {'machine':machine, 'branch':branch, 'config':config, 'stamp':__new_timestamp__()}
-  env[name]['str'] = name+'.'+str(env[name]['stamp'])
+  time_stamp = __new_timestamp__()
+  string = name+'.'+str(time_stamp)
+  env[name] = list()
+  env[name].append({'machine':machine, 'branch':branch, 'config':config, 'stamp':time_stamp, 'str':string})
+  return string
 
 def kill(name):
-  __kill__(name)
+  if isinstance(env[name], list):
+    for item in env[name]:
+      __kill__(item)
+  else:
+    __kill__(env[name])
+  print 'name = ', name
   env.pop(name)
 
 def save():
