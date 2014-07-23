@@ -114,7 +114,7 @@ public class ComputeGradient {
     return answer;
   }
 
-public static Map<String, Double> gradientUAX(Example ex) throws Exception {
+  public static Map<String, Double> gradientUAX(Example ex) throws Exception {
     return gradientUAX(ex, true);
   }
   public static Map<String, Double> gradientUAX(final Example ex, boolean train) throws Exception {
@@ -130,10 +130,11 @@ public static Map<String, Double> gradientUAX(Example ex) throws Exception {
         public Triple call() throws Exception {
           Triple triple = new Triple();
           double correct = 0.0;
-          int T1 = T;
+          int T1 = B;
+          while(Math.random() * (T-B) > 1.0) T1++;
           Alignment a = new Alignment(ex.source);
           triple.gradients.add(a.simpleInit());
-          triple.logWeights.add(Double.NEGATIVE_INFINITY);
+          triple.logWeights.add(0.0);
           triple.initial.add(true);
           for(int t = 0; t < T1; t++){
             triple.gradients.add(a.propose((int)(Math.random() * a.len)));
@@ -141,7 +142,7 @@ public static Map<String, Double> gradientUAX(Example ex) throws Exception {
               triple.logWeights.add(-1.0 * a.editDistance(ex.target));
               if(a.collapse().equals(ex.target)) correct += 1.0/(K*(T1-B));
             } else {
-              triple.logWeights.add(Double.NEGATIVE_INFINITY);
+              triple.logWeights.add(0.0);
             }
             triple.initial.add(false);
           }
@@ -171,7 +172,7 @@ public static Map<String, Double> gradientUAX(Example ex) throws Exception {
     int len = new Alignment(ex.source).len;
     for(int i = 0; i < logWeights.size(); i++){
       score += Math.exp(logWeights.get(i)) / (K*(T-B));
-      if(logWeights.get(i) > Double.NEGATIVE_INFINITY){
+      if(logWeights.get(i) > 0.0){
         edits += -logWeights.get(i) / (K * (T-B) * len);
       }
     }
@@ -180,18 +181,17 @@ public static Map<String, Double> gradientUAX(Example ex) throws Exception {
     Main.edits.add(edits);
     Main.correct.add(correct);
     if(!train) return null;
-    Util.logNormalize(logWeights);
     Map<String, Double> answer = new HashMap<String, Double>();
-    double cumulativeWeight = -1;
+    double cumulativeWeight = 0.0;
     for(int i = logWeights.size() - 1; i >= 0; i--){
-      if(cumulativeWeight == -1) { // weight by the last factor.
-        cumulativeWeight = Math.exp(logWeights.get(i));
-      }
+      cumulativeWeight += logWeights.get(i);
       Util.update(answer, gradients.get(i), cumulativeWeight);
-      if(initial.get(i)) cumulativeWeight = -1;
+      if(initial.get(i)) cumulativeWeight = 0.0;
     }
     return answer;
   }
+
+
 
   public static Map<String, Double> gradientAA(Example ex) throws Exception {
     return gradientAA(ex, true);
