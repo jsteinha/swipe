@@ -48,19 +48,22 @@ for n in range(num_series-num_plots, num_series):
   if len(times) > 0:
     plt.figure(2)
     plt.plot(np.array(range(len(times)))*float(test_frequency)/float(train_size), times, '%s%s' % (colors[ni % len(colors)], style[ni / len(colors)]), label=' '.join(metadata))
-plt.figure(1)
-plt.title(name+" (accuracy) ")
-plt.xlabel('Effective passes through training data')
-plt.ylabel('Test accuracy')
-plt.axis()
-plt.legend(loc=4,prop={'size':9})
-plt.savefig('plot_%s.pdf' % name)
 
-plt.figure(2)
-plt.title(name+" (time) ")
-plt.xlabel('Effective passes through training data')
-plt.ylabel('# Test transitions')
-plt.axis()
-plt.legend(loc=4,prop={'size':9})
-plt.savefig('plottime_%s.pdf' % name)
+if len(nums) > 0:
+  plt.figure(1)
+  plt.title(name+" (accuracy) ")
+  plt.xlabel('Effective passes through training data')
+  plt.ylabel('Test accuracy')
+  plt.axis()
+  plt.legend(loc=4,prop={'size':9})
+  plt.savefig('plot.pdf')
+
+if len(times) > 0:
+  plt.figure(2)
+  plt.title(name+" (time) ")
+  plt.xlabel('Effective passes through training data')
+  plt.ylabel('# Test transitions')
+  plt.axis()
+  plt.legend(loc=4,prop={'size':9})
+  plt.savefig('plottime.pdf')
 

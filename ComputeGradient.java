@@ -158,7 +158,10 @@ public class ComputeGradient {
                                               }
                                             }));
             triple.finalSample.add(a.collapse());
-            int feat_indic = Main.dictionary.get(a.collapse()) == null ? 0 : 1;
+            // int feat_indic = Main.dictionary.get(a.collapse()) == null ? 0 : 1;
+            double feat_indic = 0.0;
+            if(Main.dictionary.get(a.collapse()) != null)
+              feat_indic = Math.log(Main.dictionary.get(a.collapse())+1);
             double feat_time = (double)ex.source.length();
             double prob = Util.sigmoid(lambda_dic*feat_indic+lambda_time*feat_time-Math.log(T-B-1));
             HashMap<String, Double> g = new HashMap<String, Double>();
