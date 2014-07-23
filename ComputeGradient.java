@@ -135,17 +135,21 @@ public class ComputeGradient {
     final ExecutorService threadPool = Executors.newFixedThreadPool(Main.numThreads);
     if(B > T) 
       throw new Exception("B ("+B+") is not supposed to be bigger than T("+T+").");
-    LogInfo.logs("lambda-dic: %f, lambda-time: %f", Main.params.get("lambda-dic"), Main.params.get("lambda-time"));
+    
+    if(params.containsKey("lambda-dic")) {
+      LogInfo.logs("lambda-dic: %f, lambda-time: %f, lambda-eq2: %f, lambda-eq3: %f", 
+                                params.get("lambda-dic"), params.get("lambda-time"), 
+                                params.get("lambda-eq2"), params.get("lambda-eq3"));
+    }
     for(int k = 0; k < K; k++){
       Callable<Triple> sampler = new Callable<Triple>(){
         public Triple call() throws Exception {
-          double lambda_dic = params.get("lambda-dic"), lambda_time = params.get("lambda-time");
           Triple triple = new Triple();
           double correct = 0.0;
           final Alignment a = new Alignment(ex.source);
           triple.gradients.add(a.simpleInit());
           triple.gradientsStop.add(null);
-          triple.finalSample.add(a.collapse());
+          triple.samples.add(a.collapse());
           triple.edits.add(0);
           triple.logWeights.add(Double.NEGATIVE_INFINITY);
           triple.initial.add(true);
@@ -157,18 +161,37 @@ public class ComputeGradient {
                                                 return a.extractFeatures(true, "");
                                               }
                                             }));
-            triple.finalSample.add(a.collapse());
+            triple.samples.add(a.collapse());
             // int feat_indic = Main.dictionary.get(a.collapse()) == null ? 0 : 1;
             double feat_indic = 0.0;
             if(Main.dictionary.get(a.collapse()) != null)
               feat_indic = Math.log(Main.dictionary.get(a.collapse())+1);
             double feat_time = (double)ex.source.length();
-            double prob = Util.sigmoid(lambda_dic*feat_indic+lambda_time*feat_time-Math.log(T-B-1));
+            boolean feat_eq2 = false; 
+            if(t > 1)
+              feat_eq2 = triple.samples.get(t).equals(triple.samples.get(t-1));
+            boolean feat_eq3 = false;
+            if(t > 2) 
+              feat_eq3 = triple.samples.get(t-1).equals(triple.samples.get(t-2)) 
+                                && triple.samples.get(t-2).equals(triple.samples.get(t-3));
             HashMap<String, Double> g = new HashMap<String, Double>();
-            g.put("lambda-dic-pos", (1-prob)*feat_indic);
-            g.put("lambda-dic-neg", -prob*feat_indic);
-            g.put("lambda-time-pos", (1-prob)*feat_time);
-            g.put("lambda-time-neg", -prob*feat_time);
+            triple.timefeat.put("lambda-dic", feat_indic);
+            triple.timefeat.put("lambda-time", feat_time);
+            triple.timefeat.put("lambda-eq2", feat_eq2 == true ? 1.0 : 0.0);
+            triple.timefeat.put("lambda-eq3", feat_eq3 == true ? 1.0 : 0.0);
+            double dotprod = -Math.log(T-B-1);
+            for(Map.Entry<String, Double> entry: triple.timefeat.entrySet()) {
+              String key = entry.getKey();
+              if(!params.containsKey(key)) params.put(key, 0.0);
+              dotprod += params.get(key)*triple.timefeat.get(key);
+            }
+            double prob = Util.sigmoid(dotprod);
+            for(Map.Entry<String, Double> entry: triple.timefeat.entrySet()){
+              String key = entry.getKey();
+              double value = entry.getValue();
+              g.put(key+"-pos", (1-prob)*value);
+              g.put(key+"-neg", -prob*value);  
+            }
             // compute the importance weights. 
             triple.initial.add(false);
             if(t >= B){
@@ -198,7 +221,7 @@ public class ComputeGradient {
     for(Future<Triple> sampler : samplers){
       Triple ret = sampler.get();
       LogInfo.begin_track("sampler "+sampler.toString());
-      for(String sample : ret.finalSample) {
+      for(String sample : ret.samples) {
         LogInfo.logs("target: %s, final sample: %s", ex.target, sample);
       }
       LogInfo.end_track();
@@ -206,7 +229,6 @@ public class ComputeGradient {
       ret.appendTo(result);
       correct += ret.correct;
     }
-    Main.records.put("T", (double)allT/K);
 
     double score = 0.0, edits = 0.0;
     int len = new Alignment(ex.source).len;
@@ -230,15 +252,18 @@ public class ComputeGradient {
     for(int i = result.logWeights.size() - 1; i >= 0; i--){
       double weight = Math.exp(result.logWeights.get(i));
       if(result.gradientsStop.get(i) != null) {
-        Util.update(answer, "lambda-dic", result.gradientsStop.get(i).get("lambda-dic-pos")*weight
-                                          +result.gradientsStop.get(i).get("lambda-dic-neg")*cumulativeWeight);
-        Util.update(answer, "lambda-time", result.gradientsStop.get(i).get("lambda-time-pos")*weight
-                                          +result.gradientsStop.get(i).get("lambda-time-neg")*cumulativeWeight);
+        for(Map.Entry<String, Double> entry: result.timefeat.entrySet()){
+          String key = entry.getKey();
+          Util.update(answer, key, result.gradientsStop.get(i).get(key+"-pos")*weight
+                                            +result.gradientsStop.get(i).get(key+"-neg")*cumulativeWeight);
+        }
       }
       cumulativeWeight += weight;
       Util.update(answer, result.gradients.get(i), cumulativeWeight);
       if(result.initial.get(i)) cumulativeWeight = 0.0;
     }
+
+
     return answer;
   }
 
@@ -430,7 +455,8 @@ class Triple {
   ArrayList<Double> logWeights = new ArrayList<Double>();
   ArrayList<Boolean> initial = new ArrayList<Boolean>();
   ArrayList<Integer> edits = new ArrayList<Integer>();
-  ArrayList<String> finalSample = new ArrayList<String>();
+  ArrayList<String> samples = new ArrayList<String>();
+  HashMap<String, Double> timefeat = new HashMap<String, Double>();
   double correct = 0.0;
   int effT = 0;
   public Triple() {}
@@ -440,7 +466,8 @@ class Triple {
     triple.logWeights.addAll(this.logWeights);
     triple.initial.addAll(this.initial);
     triple.edits.addAll(this.edits);
-    triple.finalSample.addAll(this.finalSample);
+    triple.samples.addAll(this.samples);
+    triple.timefeat = this.timefeat;
   }
 }
 

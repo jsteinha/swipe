@@ -57,8 +57,7 @@ public class Main implements Runnable {
   //static HashMap<String, Double> params = new HashMap<String, Double>();
   static HashMap<String, Double> G1 = new HashMap<String, Double>(),
                                  G2 = new HashMap<String, Double>(),
-                                 params = new HashMap<String, Double>(),
-                                 records = new HashMap<String, Double>();
+                                 params = new HashMap<String, Double>();
   static HashMap<String, Double> dictionary, partialDict;
   static StatFig score = new StatFig(),
                  edits = new StatFig(),
@@ -157,8 +156,6 @@ public class Main implements Runnable {
     
     Alignment.copyFeatures("init-", "");
     Alignment.copyFeatures("init-", "last-");
-    Main.params.put("lambda-dic", 0.0);
-    Main.params.put("lambda-time", 0.0);
 
     for(int q = 0; q < Q; q++){
       LogInfo.begin_track("Beginning iteration %d", q);
