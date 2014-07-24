@@ -136,9 +136,9 @@ public class ComputeGradient {
     if(B > T) 
       throw new Exception("B ("+B+") is not supposed to be bigger than T("+T+").");
     
-    if(params.containsKey("lambda-dic")) {
-      LogInfo.logs("lambda-dic: %f, lambda-time: %f, lambda-eq2: %f, lambda-eq3: %f", 
-                                params.get("lambda-dic"), params.get("lambda-time"), 
+    if(params.containsKey("lambda-time")) {
+      LogInfo.logs("lambda-dic: %f, lambda-time: %f, lambda-bias: %f, lambda-eq2: %f, lambda-eq3: %f", 
+                                params.get("lambda-dic"), params.get("lambda-time"), params.get("lambda-bias"), 
                                 params.get("lambda-eq2"), params.get("lambda-eq3"));
     }
     for(int k = 0; k < K; k++){
@@ -167,6 +167,7 @@ public class ComputeGradient {
             if(Main.dictionary.get(a.collapse()) != null)
               feat_indic = Math.log(Main.dictionary.get(a.collapse())+1);
             double feat_time = (double)ex.source.length();
+            double feat_bias = 1.0;
             boolean feat_eq2 = false; 
             if(t > 1)
               feat_eq2 = triple.samples.get(t).equals(triple.samples.get(t-1));
@@ -175,10 +176,11 @@ public class ComputeGradient {
               feat_eq3 = triple.samples.get(t-1).equals(triple.samples.get(t-2)) 
                                 && triple.samples.get(t-2).equals(triple.samples.get(t-3));
             HashMap<String, Double> g = new HashMap<String, Double>();
-            triple.timefeat.put("lambda-dic", feat_indic);
+            // triple.timefeat.put("lambda-dic", feat_indic);
             triple.timefeat.put("lambda-time", feat_time);
-            triple.timefeat.put("lambda-eq2", feat_eq2 == true ? 1.0 : 0.0);
-            triple.timefeat.put("lambda-eq3", feat_eq3 == true ? 1.0 : 0.0);
+            triple.timefeat.put("lambda-bias", feat_bias);
+            // triple.timefeat.put("lambda-eq2", feat_eq2 == true ? 1.0 : 0.0);
+            // triple.timefeat.put("lambda-eq3", feat_eq3 == true ? 1.0 : 0.0);
             double dotprod = -Math.log(T-B-1);
             for(Map.Entry<String, Double> entry: triple.timefeat.entrySet()) {
               String key = entry.getKey();
@@ -196,7 +198,8 @@ public class ComputeGradient {
             triple.initial.add(false);
             if(t >= B){
               triple.gradientsStop.add(g);
-              triple.logWeights.add(-1.0 * a.editDistance(ex.target)+Math.log(prob)-Main.c*Math.max(0, t-T));
+              // triple.logWeights.add(-1.0 * a.editDistance(ex.target)+Math.log(prob)-Main.c*Math.max(0, t-T)); // strategy 1. hinge-loss.
+              triple.logWeights.add(-1.0 * a.editDistance(ex.target)+Math.log(prob)-Main.c*t); // strategy 1. naive loss.
               triple.edits.add(a.editDistance(ex.target));
               if(a.collapse().equals(ex.target)) correct += 1.0;
               if(Math.random() < prob) { // stop.
